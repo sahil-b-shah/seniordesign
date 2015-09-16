@@ -1,5 +1,7 @@
 package UserInterface;
 
+import java.sql.SQLException;
+
 import Commands.Commands;
 
 public class SQLParser {
@@ -10,8 +12,9 @@ public class SQLParser {
 	 * Parses command string and executes command
 	 * @param cmd - command to execute
 	 * @return true if command executed, and false if invalid command
+	 * @throws SQLException 
 	 */
-	public boolean parse(String cmd){
+	public boolean parse(String cmd) throws SQLException{
 		switch (cmd){
 
 		case "JOIN":{
