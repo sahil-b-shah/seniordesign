@@ -1,37 +1,37 @@
 package Manager;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Properties;
+import java.util.ArrayList;
 
 public class DBManager {
 	
-	private String user;
-	private String password;
-	private String server;
-	private String port;
 	private static DBManager managerInstance;
+	private static ArrayList<DBNode> nodes;
 	
 	public static DBManager getInstance(){
-		if(managerInstance == null)
+		if(managerInstance == null){
 			managerInstance = new DBManager();
+			initNodes();
+		}
 		
 		//TODO: set password, server, etc
 		
 		return managerInstance;
 	}
 	
-	public Connection getConnection() throws SQLException {	
-		Connection connection = null;
-		Properties properties = new Properties();
-		properties.put("user", user);
-		properties.put("password",password);
+	private static void initNodes(){
+		nodes = new ArrayList<DBNode>();
 		
-		connection = DriverManager.getConnection("jdbc:mysql://" + server +
-				":" + port + "/",properties);
+		//TODO: read from config file and add nodes to arraylist
 		
-		return connection;
+		//TODO: send message to each node with the ip addresses of other nodes
 		
+	}
+	
+	public static ArrayList<DBNode> getNodes(){
+		if(managerInstance == null){
+			managerInstance = new DBManager();
+			initNodes();
+		}
+		return nodes;
 	}
 }

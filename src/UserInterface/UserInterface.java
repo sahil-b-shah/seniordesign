@@ -3,6 +3,8 @@ package UserInterface;
 import java.sql.SQLException;
 import java.util.Scanner;
 
+import Manager.DBManager;
+
 public class UserInterface {
 
 	public static void main(String[] args) {

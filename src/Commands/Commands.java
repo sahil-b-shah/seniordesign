@@ -6,30 +6,41 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import Manager.DBManager;
+import Manager.DBNode;
 
 public class Commands {
-	
+
 	public static boolean join(){
 		//TODO: Implement join
 		return false;
 	}	
-	
-	public static boolean runMySQLCommand(String query) throws SQLException{		
+
+	public static ResultSet runMySQLCommand(String query, DBNode node) throws SQLException{		
 		//TODO: sample code that may work below, don't run it
 		Statement statement = null;
-		DBManager manager = DBManager.getInstance();
-		Connection connection = manager.getConnection();
-		try {
-			statement = connection.createStatement();
-			//TODO: figure out what to do with results
-			ResultSet result = statement.executeQuery(query);
-			statement.close();
-		} catch (SQLException e) {
-			//TODO: come up with common format for printing stack traces
-			e.printStackTrace();
-			statement.close();
-			return false;
+		ResultSet result = null;
+		Connection connection = node.getConnection();
+		statement = connection.createStatement();
+		result = statement.executeQuery(query);
+		statement.close();
+		return result;
+	}
+
+	public static boolean insert(String cmd) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public static boolean createTable(String cmd) {
+		for(DBNode node: DBManager.getNodes()){
+			try {
+				//create same new table on each node (same command for each node)
+				runMySQLCommand(cmd, node);
+			} catch (SQLException e) {
+				e.printStackTrace();
+				return false;   //error in command
+			}
 		}
-		return true;
+		return true;   //no SQL exception anywhere
 	}
 }

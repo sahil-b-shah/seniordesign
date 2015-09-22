@@ -15,15 +15,24 @@ public class SQLParser {
 	 * @throws SQLException 
 	 */
 	public boolean parse(String cmd) throws SQLException{
-		switch (cmd){
-
-		case "JOIN":{
-			System.out.println(cmd + "\n is a JOIN");
+		if(cmd.startsWith("JOIN")){
+			System.out.println(cmd + " is a JOIN");
 			return Commands.join();
 		}
 		
-		default:
-			return Commands.runMySQLCommand(cmd);
+		else if(cmd.startsWith("INSERT INTO")){
+			System.out.println(cmd + " is a INSERT INTO");
+			return Commands.insert(cmd);
+		}
+		
+		else if(cmd.startsWith("CREATE TABLE")){
+			System.out.println(cmd + " is a CREATE TABLE");
+			return Commands.createTable(cmd);
+		}
+		
+		else{
+			System.out.println(cmd + " is not a recognized command");
+			return false;
 		}
 	}
 
