@@ -21,7 +21,7 @@ public class SQLParser {
 		}
 		
 		else if(cmd.startsWith("INSERT INTO")){
-			System.out.println(cmd + " is a INSERT INTO");
+			System.out.println(cmd + " is a INSERT INTO ...");
 			return Commands.insert(cmd);
 		}
 		
@@ -29,6 +29,18 @@ public class SQLParser {
 			System.out.println(cmd + " is a CREATE TABLE");
 			return Commands.createTable(cmd);
 		}
+		
+		else if(cmd.startsWith("DELETE FROM")){
+			System.out.println(cmd + " is a DELETE FROM ... INTO ...");
+			return Commands.delete(cmd);
+		}
+		
+		else if(cmd.startsWith("SELECT")){
+			System.out.println(cmd + " is a SELECT");
+			return Commands.select(cmd);
+		}
+		
+		
 		
 		else{
 			System.out.println(cmd + " is not a recognized command");

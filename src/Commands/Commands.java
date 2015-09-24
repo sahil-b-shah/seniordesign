@@ -31,6 +31,11 @@ public class Commands {
 		return false;
 	}
 
+	/**
+	 * Creates a distributed table
+	 * @param cmd: query from parser that starts with "CREATE TABLE"
+	 * @return true if worked, else false
+	 */
 	public static boolean createTable(String cmd) {
 		for(DBNode node: DBManager.getNodes()){
 			try {
@@ -42,5 +47,15 @@ public class Commands {
 			}
 		}
 		return true;   //no SQL exception anywhere
+	}
+
+	public static boolean delete(String cmd) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public static boolean select(String cmd) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }
