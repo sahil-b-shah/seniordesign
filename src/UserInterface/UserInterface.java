@@ -7,7 +7,7 @@ public class UserInterface {
 
 	public static void main(String[] args) {
 		Scanner scanner = new Scanner(System.in);
-		SQLParser parser = new SQLParser();
+		SQLParser parser = new SQLParser(false);
 
 		//TODO change this print statement
 		System.out.println("Using config file in location (blank)");
