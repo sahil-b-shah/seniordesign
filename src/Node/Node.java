@@ -29,6 +29,11 @@ public class Node {
 		//returns null if error returned(invalid query, etc)
 		return null;
 	}
+
+	public boolean updateSuccessful() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 	
 	
 }

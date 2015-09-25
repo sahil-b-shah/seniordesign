@@ -25,12 +25,10 @@ public class Commands {
 			try {
 				//create same new table on each node (same command for each node)
 				node.sendMessage(cmd);
-				if(node.getResultSet()  == null){
-					return false;
-				}
+				return node.updateSuccessful();
 			} catch (Exception e) {
 				e.printStackTrace();
-				return false;   //error in conenction
+				return false;   //error in connection
 			}
 		}
 		return true;   //no SQL exception anywhere

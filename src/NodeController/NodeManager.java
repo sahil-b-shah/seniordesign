@@ -1,29 +1,19 @@
 package NodeController;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.ArrayList;
+
+import Node.Node;
 
 public class NodeManager {
 
 	private static DBInstance db;
+	private static ArrayList<Node> nodes;
 	
 	public static void main(String args[]){
 		System.out.println("Initializing Node Connection. Waiting for messges.");
 		db = null;
+		nodes = null;
 		//TODO: needs to constantly listen to socket and send queries based on commands from master 
 		
 	}
-	
-	public static ResultSet runMySQLCommand(String query) throws SQLException{		
-		Statement statement = null;
-		ResultSet result = null;
-		Connection connection = db.getConnection();
-		statement = connection.createStatement();
-		result = statement.executeQuery(query);
-		statement.close();
-		return result;
-	}
-	
 }
