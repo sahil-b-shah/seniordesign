@@ -7,14 +7,16 @@ import java.sql.Statement;
 
 public class NodeManager {
 
+	private static DBInstance db;
+	
 	public static void main(String args[]){
 		System.out.println("Initializing Node Connection. Waiting for messges.");
-		
+		db = null;
 		//TODO: needs to constantly listen to socket and send queries based on commands from master 
 		
 	}
 	
-	public static ResultSet runMySQLCommand(String query, DBInstance db) throws SQLException{		
+	public static ResultSet runMySQLCommand(String query) throws SQLException{		
 		Statement statement = null;
 		ResultSet result = null;
 		Connection connection = db.getConnection();
