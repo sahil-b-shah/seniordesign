@@ -2,14 +2,16 @@ package Manager;
 
 import java.util.ArrayList;
 
-public class DBManager {
+import Node.Node;
+
+public class ClusterManager {
 	
-	private static DBManager managerInstance;
-	private static ArrayList<DBNode> nodes;
+	private static ClusterManager managerInstance;
+	private static ArrayList<Node> nodes;
 	
-	public static DBManager getInstance(){
+	public static ClusterManager getInstance(){
 		if(managerInstance == null){
-			managerInstance = new DBManager();
+			managerInstance = new ClusterManager();
 			initNodes();
 		}
 		
@@ -19,7 +21,7 @@ public class DBManager {
 	}
 	
 	private static void initNodes(){
-		nodes = new ArrayList<DBNode>();
+		nodes = new ArrayList<Node>();
 		
 		//TODO: read from config file and add nodes to arraylist
 		
@@ -27,9 +29,9 @@ public class DBManager {
 		
 	}
 	
-	public static ArrayList<DBNode> getNodes(){
+	public static ArrayList<Node> getNodes(){
 		if(managerInstance == null){
-			managerInstance = new DBManager();
+			managerInstance = new ClusterManager();
 			initNodes();
 		}
 		return nodes;

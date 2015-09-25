@@ -1,12 +1,7 @@
 package Commands;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
-import Manager.DBManager;
-import Manager.DBNode;
+import Manager.ClusterManager;
+import Node.Node;
 
 public class Commands {
 
@@ -14,17 +9,6 @@ public class Commands {
 		//TODO: Implement join
 		return false;
 	}	
-
-	public static ResultSet runMySQLCommand(String query, DBNode node) throws SQLException{		
-		//TODO: sample code that may work below, don't run it
-		Statement statement = null;
-		ResultSet result = null;
-		Connection connection = node.getConnection();
-		statement = connection.createStatement();
-		result = statement.executeQuery(query);
-		statement.close();
-		return result;
-	}
 
 	public static boolean insert(String cmd) {
 		// TODO Auto-generated method stub
@@ -37,13 +21,16 @@ public class Commands {
 	 * @return true if worked, else false
 	 */
 	public static boolean createTable(String cmd) {
-		for(DBNode node: DBManager.getNodes()){
+		for(Node node: ClusterManager.getNodes()){
 			try {
 				//create same new table on each node (same command for each node)
-				runMySQLCommand(cmd, node);
-			} catch (SQLException e) {
+				node.sendMessage(cmd);
+				if(node.getResultSet()  == null){
+					return false;
+				}
+			} catch (Exception e) {
 				e.printStackTrace();
-				return false;   //error in command
+				return false;   //error in conenction
 			}
 		}
 		return true;   //no SQL exception anywhere
