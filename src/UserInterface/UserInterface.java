@@ -1,7 +1,10 @@
 package UserInterface;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Scanner;
+
+import org.json.JSONException;
 
 public class UserInterface {
 
@@ -18,7 +21,8 @@ public class UserInterface {
 		while(true){
 			command = scanner.next();
 
-			if(command.equalsIgnoreCase("q"))
+			if(command.equalsIgnoreCase("q") || command.equalsIgnoreCase("quit") 
+						|| command.equalsIgnoreCase("exit"))
 				break;  //program quit
 
 			while(scanner.hasNext()){				
@@ -33,6 +37,12 @@ public class UserInterface {
 			} catch (SQLException e) {
 				System.out.println("\nSomething went wrong. Print another MySQL Command  (Type 'exit' or 'quit' to end program)");
 
+			} catch (IOException e) {
+				System.out.println("\nThere was an error opening the config files or creating Cluster socket. Exiting");
+				break;
+			} catch (JSONException e) {
+				System.out.println("\nThere was an error parsing the config files. Exiting");
+				break;
 			}
 		}
 

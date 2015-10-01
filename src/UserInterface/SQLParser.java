@@ -1,6 +1,9 @@
 package UserInterface;
 
+import java.io.IOException;
 import java.sql.SQLException;
+
+import org.json.JSONException;
 
 import Commands.Commands;
 
@@ -18,8 +21,10 @@ public class SQLParser {
 	 * @param cmd - command to execute
 	 * @return true if command executed, and false if invalid command
 	 * @throws SQLException 
+	 * @throws JSONException 
+	 * @throws IOException 
 	 */
-	public boolean parse(String cmd) throws SQLException{
+	public boolean parse(String cmd) throws SQLException, IOException, JSONException{
 		if(cmd.startsWith("JOIN")){
 			System.out.println(cmd + " is a JOIN");
 			if(debug) return true;
