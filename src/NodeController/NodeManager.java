@@ -43,7 +43,7 @@ public class NodeManager {
 		JSONObject json = new JSONObject(contents);
 		String ip = json.get("ip").toString();
 		int port = Integer.parseInt(json.get("port").toString());
-		nodes.add(new Node(ip, port));
+//		nodes.add(new Node(ip, port));
 		
 		f = new File(nodeConfigFileLocation);
 		is = new FileInputStream(f);
@@ -57,7 +57,7 @@ public class NodeManager {
 			ip = nde.get("ip").toString();
 			port = Integer.parseInt(nde.get("port").toString());
 			if (i != nodeNum) {
-				nodes.add(new Node(ip, port));
+//				nodes.add(new Node(ip, port));
 			}
 			else {
 				socket = new ServerSocket(port);
