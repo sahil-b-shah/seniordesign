@@ -13,12 +13,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import Node.Node;
+import NodeConenction.NodeConnection;
+
 
 public class ClusterManager {
 	
 	private static ClusterManager managerInstance;
-	private static ArrayList<Node> nodes;
+	private static ArrayList<NodeConnection> nodes;
 	private static String clusterConfigFileLocation = "./src/cluster_config.json";
 	private static String nodeConfigFileLocation = "./src/node_config.json";
 	private static String ip; // cluster manager's ip
@@ -58,7 +59,7 @@ public class ClusterManager {
 			managerInstance = new ClusterManager();
 		}
 		
-		nodes = new ArrayList<Node>();
+		nodes = new ArrayList<NodeConnection>();
 
 		//TODO: read from config file and add nodes to arraylist
 		File f = new File(nodeConfigFileLocation);
@@ -72,14 +73,14 @@ public class ClusterManager {
 			JSONObject nde = new JSONObject(ndes.get(i).toString());
 			String ip = nde.get("ip").toString();
 			int port = Integer.parseInt(nde.get("port").toString());
-			nodes.add(new Node(ip, port));
+			nodes.add(new NodeConnection(ip, port));
 		}
 		
 		//TODO: send message to each node with the ip addresses of other nodes
 		
 	}
 	
-	public static ArrayList<Node> getNodes() throws IOException, JSONException{
+	public static ArrayList<NodeConnection> getNodes() throws IOException, JSONException{
 		if(managerInstance == null){
 			managerInstance = new ClusterManager();
 			initNodes();

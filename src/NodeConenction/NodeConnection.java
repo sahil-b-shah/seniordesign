@@ -1,4 +1,4 @@
-package Node;
+package NodeConenction;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,13 +7,13 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.sql.ResultSet;
 
-public class Node {
+public class NodeConnection {
 
 	private Socket socket;
 	private boolean updateSuccessful;
 	private String latestResult;
 	
-	public Node(String address, int port){
+	public NodeConnection(String address, int port){
 		try {
 			socket =  new Socket(address, port);
 			updateSuccessful = false;

@@ -14,12 +14,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import Node.Node;
+import NodeConenction.NodeConnection;
 
 public class NodeManager {
 
 	private static DBInstance db;
-	private static ArrayList<Node> nodes;
+	private static ArrayList<NodeConnection> nodes;
 	private static String clusterConfigFileLocation = "./src/cluster_config.json";
 	private static String nodeConfigFileLocation = "./src/node_config.json";
 	private static ServerSocket socket;

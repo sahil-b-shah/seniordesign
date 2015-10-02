@@ -7,7 +7,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONException;
 
 import Manager.ClusterManager;
-import Node.Node;
+import NodeConenction.NodeConnection;
 
 public class Commands {
 
@@ -42,7 +42,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createDB(String cmd) throws IOException, JSONException {
-		for(Node node: ClusterManager.getNodes()){
+		for(NodeConnection node: ClusterManager.getNodes()){
 			try {
 				//create same new db on each node (same command for each node)
 				if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
@@ -64,7 +64,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createTable(String cmd) throws IOException, JSONException {
-		for(Node node: ClusterManager.getNodes()){
+		for(NodeConnection node: ClusterManager.getNodes()){
 			try {
 				//create same new table on each node (same command for each node)
 				if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
