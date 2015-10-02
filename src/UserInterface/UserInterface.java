@@ -11,23 +11,17 @@ public class UserInterface {
 	public static void main(String[] args) {
 		Scanner scanner = new Scanner(System.in);
 		SQLParser parser = new SQLParser(false);
-
-		//TODO change this print statement
-		System.out.println("Using config file in location (blank)");
+		System.out.println("Starting user interface...");
 
 		System.out.println("\nPrint MySQL Command (Type 'exit' or 'quit' to end program)");
 
 		String command = "";
-		while(true){
-			command = scanner.next();
+		while(scanner.hasNextLine()){
+			command = scanner.nextLine();
 
 			if(command.equalsIgnoreCase("q") || command.equalsIgnoreCase("quit") 
 						|| command.equalsIgnoreCase("exit"))
 				break;  //program quit
-
-			while(scanner.hasNext()){				
-				command = command + " " + scanner.next();
-			}
 
 			try {
 				if(parser.parse(command))
