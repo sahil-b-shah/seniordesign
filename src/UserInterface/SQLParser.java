@@ -43,6 +43,13 @@ public class SQLParser {
 			return Commands.createTable(cmd);
 		}
 		
+		else if(cmd.startsWith("CREATE DB")){
+			System.out.println(cmd + " is a DELETE FROM ... INTO ...");
+			if(debug) return true;
+			return Commands.delete(cmd);
+		}
+		
+		
 		else if(cmd.startsWith("DELETE FROM")){
 			System.out.println(cmd + " is a DELETE FROM ... INTO ...");
 			if(debug) return true;

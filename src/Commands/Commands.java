@@ -18,6 +18,28 @@ public class Commands {
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+	/**
+	 * Creates a distributed db
+	 * @param cmd: query from parser that starts with "CREATE DB"
+	 * @return true if worked, else false
+	 * @throws JSONException 
+	 * @throws IOException 
+	 */
+	public static boolean createDB(String cmd) throws IOException, JSONException {
+		for(Node node: ClusterManager.getNodes()){
+			try {
+				//create same new db on each node (same command for each node)
+				if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
+					return false;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;   //error in connection
+			}
+		}
+		return true;   //no SQL exception anywhere
+	}
 
 	/**
 	 * Creates a distributed table
