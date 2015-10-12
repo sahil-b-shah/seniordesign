@@ -29,7 +29,7 @@ public class Commands {
 		//TODO: entire method needs to be written
 		//Hash primary  key using SHA-1
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
-		int fileNumber = pickNumberBucket(ClusterManager.getNodes().size(), hashedValue);
+		int fileNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
 		
 		return false;
 	}
@@ -42,18 +42,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createDB(String cmd) throws IOException, JSONException {
-		for(NodeConnection node: ClusterManager.getNodes()){
-			try {
-				//create same new db on each node (same command for each node)
-				if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
-					return false;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;   //error in connection
-			}
-		}
-		return true;   //no SQL exception anywhere
+		return ClusterManager.sendMessagesToAllNodes(cmd);
 	}
 
 	/**
@@ -64,18 +53,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createTable(String cmd) throws IOException, JSONException {
-		for(NodeConnection node: ClusterManager.getNodes()){
-			try {
-				//create same new table on each node (same command for each node)
-				if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
-					return false;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;   //error in connection
-			}
-		}
-		return true;   //no SQL exception anywhere
+		return ClusterManager.sendMessagesToAllNodes(cmd);
 	}
 
 	public static boolean delete(String cmd) {

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.sql.ResultSet;
 
 public class NodeConnection {
@@ -12,40 +13,46 @@ public class NodeConnection {
 	private Socket socket;
 	private boolean updateSuccessful;
 	private String latestResult;
+	private String address;
+	private int port;
 	
-	public NodeConnection(String address, int port){
-		try {
-			socket =  new Socket(address, port);
-			updateSuccessful = false;
-			latestResult = null;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
+	public NodeConnection(String addr, int p){
+		port = p;
+		address = addr;
+		updateSuccessful = false;
+		latestResult = null;
 	}
 
-	public Socket getSocket(){
-		return socket;
+	private Socket getSocket() throws UnknownHostException, IOException{
+		return new Socket(address, port);
 	}
 	
 	public boolean sendMessage(String query){
 		try {
+			socket = getSocket();
 			PrintWriter pw = new PrintWriter(socket.getOutputStream());
 			pw.println(query);
 			pw.flush();
-			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			String response = "";
-			String r;
-			while((r = br.readLine()) != null) {
-				response += r + "\n";
-			}
-			br.close();
-			if (response.toLowerCase().contains("success")) {
-				this.updateSuccessful = true;
-			}
-			this.latestResult = response; // store ResultSet instead
+			pw.close();
+			
+//			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//			String response = "";
+//			String r;
+//			while((r = br.readLine()) != null) {
+//				response += r + "\n";
+//			}
+//			System.out.println("Response " + response);
+//			br.close();
+//			socket.close();
+//			socket = null;
+//			if (response.toLowerCase().contains("success")) {
+//				System.out.println("Successfully sent and received command");
+//				this.updateSuccessful = true;
+//			}
+//			this.latestResult = response; // store ResultSet instead
 			return true;
 		} catch (IOException e) {
+			System.out.println("IOException in sendMessage()");
 			return false;
 		}
 	}

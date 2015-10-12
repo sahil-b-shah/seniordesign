@@ -1,11 +1,15 @@
 package NodeController;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -43,7 +47,7 @@ public class NodeManager {
 		JSONObject json = new JSONObject(contents);
 		String ip = json.get("ip").toString();
 		int port = Integer.parseInt(json.get("port").toString());
-//		nodes.add(new Node(ip, port));
+//		nodes.add(new NodeConnection(ip, port));
 		
 		f = new File(nodeConfigFileLocation);
 		is = new FileInputStream(f);
@@ -91,12 +95,25 @@ public class NodeManager {
 		while(true) {
 			try {
 				Socket s = socket.accept();
+				System.out.println("Created socket for incoming message");
 				BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+				String req = "";
 				String line;
+				
 				while((line = in.readLine()) != null) {
-					System.out.println(line);
+					System.out.println("line: " + line + ";");
+					req += line;
 				}
 				
+				System.out.println("Req " + req);
+				
+				System.out.println("Writing response");
+				BufferedWriter out = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
+				
+				out.write("success\n");
+				out.flush();
+				s.close();
+
 				System.out.println("-------\n");
 			} catch (IOException e) {
 				System.out.println("Error receiving message from master. Exiting");

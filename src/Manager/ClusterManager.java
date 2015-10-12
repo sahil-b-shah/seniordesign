@@ -54,7 +54,7 @@ public class ClusterManager {
 		return sb.toString();
 	}
 	
-	private static void initNodes() throws IOException, JSONException{
+	public static void initNodes() throws IOException, JSONException{
 		if(managerInstance == null){
 			managerInstance = new ClusterManager();
 		}
@@ -73,6 +73,7 @@ public class ClusterManager {
 			JSONObject nde = new JSONObject(ndes.get(i).toString());
 			String ip = nde.get("ip").toString();
 			int port = Integer.parseInt(nde.get("port").toString());
+			System.out.println(ip + " " + port);
 			nodes.add(new NodeConnection(ip, port));
 		}
 		
@@ -80,11 +81,31 @@ public class ClusterManager {
 		
 	}
 	
-	public static ArrayList<NodeConnection> getNodes() throws IOException, JSONException{
-		if(managerInstance == null){
-			managerInstance = new ClusterManager();
-			initNodes();
+	public static boolean sendMessagesToAllNodes(String cmd) {
+		for(NodeConnection node: nodes){
+			try {
+				//create same new table on each node (same command for each node)
+				if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
+					return false;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;   //error in connection
+			}
 		}
-		return nodes;
+		return true;
 	}
+	
+	public static int getNodesSize() {
+		return nodes.size();
+	}
+	
+//	public static ArrayList<NodeConnection> getNodes() throws IOException, JSONException{
+//		if(managerInstance == null){
+//			managerInstance = new ClusterManager();
+//			initNodes();
+//		}
+//		return nodes;
+//	}
+	
 }
