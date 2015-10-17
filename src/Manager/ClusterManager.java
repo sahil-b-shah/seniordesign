@@ -13,7 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import NodeConenction.NodeConnection;
+import NodeConnection.NodeConnection;
 
 
 public class ClusterManager {

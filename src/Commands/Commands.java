@@ -7,7 +7,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONException;
 
 import Manager.ClusterManager;
-import NodeConenction.NodeConnection;
+import NodeConnection.NodeConnection;
 
 public class Commands {
 
