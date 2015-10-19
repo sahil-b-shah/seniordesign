@@ -7,7 +7,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONException;
 
 import Manager.ClusterManager;
-import Node.Node;
+import NodeConnection.NodeConnection;
 
 public class Commands {
 	
@@ -35,12 +35,9 @@ public class Commands {
 		
 		//TODO: entire method needs to be written
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
-		int nodeNumber = pickNumberBucket(ClusterManager.getNodes().size(), hashedValue);
+		int nodeNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
 		
-		Node node = ClusterManager.getNodes().get(nodeNumber);
-		node.sendMessage(cmd);
-		
-		return false;
+		return ClusterManager.sendMessageToNode(cmd, nodeNumber);
 	}
 	
 	private static String[] getValues(char[] chars) {
@@ -91,18 +88,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createDB(String cmd) throws IOException, JSONException {
-		for(Node node: ClusterManager.getNodes()){
-			try {
-				//create same new db on each node (same command for each node)
-				if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
-					return false;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;   //error in connection
-			}
-		}
-		return true;   //no SQL exception anywhere
+		return ClusterManager.sendMessagesToAllNodes(cmd);
 	}
 
 	/**
@@ -113,18 +99,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createTable(String cmd) throws IOException, JSONException {
-		for(Node node: ClusterManager.getNodes()){
-			try {
-				//create same new table on each node (same command for each node)
-				if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
-					return false;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;   //error in connection
-			}
-		}
-		return true;   //no SQL exception anywhere
+		return ClusterManager.sendMessagesToAllNodes(cmd);
 	}
 
 	public static boolean delete(String cmd) {
