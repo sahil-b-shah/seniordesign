@@ -33,7 +33,6 @@ public class Commands {
 		String[] values = getValues(rest);
 		primaryKey = values[0];
 		
-		//TODO: entire method needs to be written
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
 		
