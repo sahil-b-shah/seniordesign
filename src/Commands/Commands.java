@@ -10,6 +10,8 @@ import Manager.ClusterManager;
 import Node.Node;
 
 public class Commands {
+	
+	private final static char REPLACEMENT_CHAR = '\uFFFC';
 
 	public static boolean join(){
 		//TODO: Implement join
@@ -26,12 +28,59 @@ public class Commands {
 	public static boolean insert(String cmd) throws IOException, JSONException {
 		String primaryKey = "";
 		
+		final char[] rest = cmd.substring(cmd.indexOf("VALUES")).toCharArray();
+		
+		String[] values = getValues(rest);
+		primaryKey = values[0];
+		
 		//TODO: entire method needs to be written
-		//Hash primary  key using SHA-1
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
-		int fileNumber = pickNumberBucket(ClusterManager.getNodes().size(), hashedValue);
+		int nodeNumber = pickNumberBucket(ClusterManager.getNodes().size(), hashedValue);
+		
+		Node node = ClusterManager.getNodes().get(nodeNumber);
+		node.sendMessage(cmd);
 		
 		return false;
+	}
+	
+	private static String[] getValues(char[] chars) {
+		boolean inString = false;
+	    int start = -1;
+	    int end   = -1;
+	    for (int i = 0; i<chars.length; i++)
+	    {
+	        final char c = chars[i];
+	        if ( inString && c == ',')
+	        {
+	            chars[i] = REPLACEMENT_CHAR;
+	        }
+	        else if ( c=='\'')
+	        {
+	            inString = !inString;
+	        }
+	        else if (!inString && c == '(')
+	        {
+	            if (start != -1)
+	                throw new AssertionError("Start brace found twice!");
+
+	            start = i+1;
+	        }
+	        else if (!inString && c == ')')
+	        {
+	            end = i-1;
+	            break;
+	        }
+	    }
+
+	    if (start == -1 || end == -1)
+	        throw new AssertionError("Start or end of the values part not found!");
+
+
+	    // split the result for having the values
+	    final String[] values = new String(chars, start, end-start+1).split("\\s*,\\s*");
+	    /*if (values.length != columns.length)
+	        throw new AssertionError("The number of values differs of the number of columns");*/
+	    return values;
 	}
 	
 	/**
@@ -94,7 +143,7 @@ public class Commands {
 	 * @param hashedValue - value to place
 	 * @return node that value hashes to
 	 */
-	private static int pickNumberBucket(int numWorkers, String hashedValue) {
+	private static int pickNumberBucket(int numNodes, String hashedValue) {
 		String maxValue = "";
 		for(int i = 0; i < 40; i++){
 			maxValue += "f";
@@ -102,7 +151,7 @@ public class Commands {
 		BigInteger hash = new BigInteger(hashedValue, 16);
 		BigInteger bigMax = new BigInteger(maxValue, 16).add(BigInteger.ONE);
 		
-		BigInteger rangeSize = bigMax.divide(BigInteger.valueOf(numWorkers));
+		BigInteger rangeSize = bigMax.divide(BigInteger.valueOf(numNodes));
 		
 		int bucket = hash.divide(rangeSize).intValue() + 1;
 		return bucket;
