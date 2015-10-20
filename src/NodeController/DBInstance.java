@@ -1,19 +1,27 @@
 package NodeController;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 
 public class DBInstance {
 
-	private static Connection connection;
+	private Connection connection;
 	
-	public DBInstance(String address, String port){
-		connection = null;
+	public DBInstance(String address, int port, int dbInstance) throws ClassNotFoundException, SQLException{
+		Class.forName("com.mysql.jdbc.Driver");
+		Properties properties = new Properties();
+		properties.put("user", "acesdatabases");
+		properties.put("password", "cis400ad");
+		connection = DriverManager.getConnection("jdbc:mysql://" + address +
+				":" + port + "/mydbinstance" + dbInstance, "acesdatabases", "cis400ad");
 	}
 	
-	public static int runMySQLUpdate(String update) throws SQLException{		
+	public int runMySQLUpdate(String update) throws SQLException{		
 		Statement statement = null;
 		statement = connection.createStatement();
 		int result = statement.executeUpdate(update);
@@ -21,12 +29,24 @@ public class DBInstance {
 		return result;
 	}
 	
-	public static ResultSet runMySQLQuery(String query) throws SQLException{		
+	public String runMySQLQuery(String query) throws SQLException{		
 		Statement statement = null;
 		ResultSet result = null;
 		statement = connection.createStatement();
 		result = statement.executeQuery(query);
 		statement.close();
-		return result;
+		
+		ResultSetMetaData rsmd = result.getMetaData();
+		int columns = rsmd.getColumnCount();
+
+		String res = "";
+		while (result.next()) {
+			for (int i = 1; i <= columns; i++) {
+				res += result.getString(i) + ",";
+			}
+			res += "\r\n";
+		}
+		
+		return res;
 	}
 }

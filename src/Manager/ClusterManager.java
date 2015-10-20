@@ -81,13 +81,14 @@ public class ClusterManager {
 		
 	}
 	
-	public static boolean sendMessagesToAllNodes(String cmd) {
+	public static boolean sendMessagesToAllNodes(String cmd, String type) {
 		for(NodeConnection node: nodes){
 			try {
 				//create same new table on each node (same command for each node)
-				if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
+				if (!(node.sendMessage(cmd, type) || node.updateSuccessful())) {
 					return false;
 				}
+				node.resetUpdate();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return false;   //error in connection
@@ -96,13 +97,14 @@ public class ClusterManager {
 		return true;
 	}
 	
-	public static boolean sendMessageToNode(String cmd, int nodeNumber) {
+	public static boolean sendMessageToNode(String cmd, String type, int nodeNumber) {
 		NodeConnection node = nodes.get(nodeNumber);
 		try {
 			//create same new table on each node (same command for each node)
-			if (!(node.sendMessage(cmd) || node.updateSuccessful())) {
+			if (!(node.sendMessage(cmd, type) || node.updateSuccessful())) {
 				return false;
 			}
+			node.resetUpdate();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;   //error in connection

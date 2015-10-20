@@ -27,34 +27,39 @@ public class NodeConnection {
 		return new Socket(address, port);
 	}
 	
-	public boolean sendMessage(String query){
+	public boolean sendMessage(String query, String type){
 		try {
 			socket = getSocket();
 			PrintWriter pw = new PrintWriter(socket.getOutputStream());
-			pw.println(query);
+			pw.println(query + "\r\n\r\n");
 			pw.flush();
-			pw.close();
 			
-//			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//			String response = "";
-//			String r;
-//			while((r = br.readLine()) != null) {
-//				response += r + "\n";
-//			}
-//			System.out.println("Response " + response);
-//			br.close();
-//			socket.close();
-//			socket = null;
-//			if (response.toLowerCase().contains("success")) {
-//				System.out.println("Successfully sent and received command");
-//				this.updateSuccessful = true;
-//			}
-//			this.latestResult = response; // store ResultSet instead
+			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			String response = "";
+			String r;
+			while((r = br.readLine()) != null) {
+				response += r + "\n";
+			}
+			br.close();
+
+			socket.close();
+			socket = null;
+			if (response.toLowerCase().contains("success")) {
+				System.out.println("Successfully sent and received command");
+				this.updateSuccessful = true;
+			}
+			this.latestResult = response; // store ResultSet instead
+			
+//			pw.close();
 			return true;
 		} catch (IOException e) {
 			System.out.println("IOException in sendMessage()");
 			return false;
 		}
+	}
+	
+	public void resetUpdate() {
+		this.updateSuccessful = false;
 	}
 	
 	public ResultSet getResultSet(){

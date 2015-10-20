@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.json.JSONArray;
@@ -91,6 +92,18 @@ public class NodeManager {
 			return;
 		}
 		
+		try {
+			db = new DBInstance("mydbinstance1.cq1ztbxovkrk.us-east-1.rds.amazonaws.com", 3306, 1);
+		} catch (ClassNotFoundException e1) {
+			System.out.println("Make sure that you have correctly imported the JDBC libs");
+			return;
+		} catch (SQLException e1) {
+			System.out.println("SQL exception while setting up connection to db");
+			return;
+		}
+		
+		System.out.println("Done setup");
+		
 		//TODO: needs to constantly listen to socket and send queries based on commands from master 
 		while(true) {
 			try {
@@ -98,19 +111,54 @@ public class NodeManager {
 				System.out.println("Created socket for incoming message");
 				BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
 				String req = "";
+				String type = "";
 				String line;
 				
+				boolean firstEmpty = true;
+				boolean first = true;
+				
 				while((line = in.readLine()) != null) {
-					System.out.println("line: " + line + ";");
-					req += line;
+					if (line.trim().equals("") && !firstEmpty) {
+						break;
+					}
+					else if (line.trim().equals("")) {
+						firstEmpty = true;
+					}
+					else {
+						firstEmpty = false;
+					}
+					if (first) {
+						first = false;
+						type = line;
+					}
+					else {
+						req += line;
+					}
 				}
 				
-				System.out.println("Req " + req);
+				String retMessage = "";
+
+				try {
+					if (type.equals("UPDATE")) {
+						if(db.runMySQLUpdate(req) == 0) {
+							retMessage += "Success\r\n\r\n";
+						}
+						else {
+							retMessage += "Failure\r\n\r\n";
+						}
+					}
+					else if(type.equals("QUERY")) {
+						retMessage += "Success\r\n" + db.runMySQLQuery(req);
+					}
+				} catch (SQLException e) {
+					System.out.println("SQLException while executing command " + req);
+					return;
+				}
 				
-				System.out.println("Writing response");
+				
 				BufferedWriter out = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
 				
-				out.write("success\n");
+				out.write(retMessage);
 				out.flush();
 				s.close();
 

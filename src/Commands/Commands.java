@@ -37,7 +37,7 @@ public class Commands {
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
 		
-		return ClusterManager.sendMessageToNode(cmd, nodeNumber);
+		return ClusterManager.sendMessageToNode(cmd, "QUERY", nodeNumber);
 	}
 	
 	private static String[] getValues(char[] chars) {
@@ -88,7 +88,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createDB(String cmd) throws IOException, JSONException {
-		return ClusterManager.sendMessagesToAllNodes(cmd);
+		return ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createTable(String cmd) throws IOException, JSONException {
-		return ClusterManager.sendMessagesToAllNodes(cmd);
+		return ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
 	}
 
 	public static boolean delete(String cmd) {
