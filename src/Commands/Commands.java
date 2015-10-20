@@ -7,7 +7,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONException;
 
 import Manager.ClusterManager;
-import NodeConnection.NodeConnection;
 
 public class Commands {
 	
@@ -33,7 +32,6 @@ public class Commands {
 		String[] values = getValues(rest);
 		primaryKey = values[0];
 		
-		//TODO: entire method needs to be written
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
 		
@@ -107,9 +105,16 @@ public class Commands {
 		return false;
 	}
 
+	/**
+	 * Selects data from databases
+	 * @param cmd: query from parser that starts with "SELECT"
+	 * @return true if worked, else false
+	 * @throws JSONException 
+	 * @throws IOException 
+	 */
 	public static boolean select(String cmd) {
-		// TODO Auto-generated method stub
-		return false;
+		//TODO: need to get response from message
+		return ClusterManager.sendMessagesToAllNodes(cmd);
 	}
 	
 	/**
