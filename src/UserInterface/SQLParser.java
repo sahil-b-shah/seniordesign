@@ -11,6 +11,7 @@ public class SQLParser {
 
 	private boolean debug;
 	private String insertPattern = "(INSERT INTO\\s[\\s\\w]+VALUES\\s[\\s\\w]+)";
+	private String selectPattern = "(SELECT\\s[\\s\\w]+FROM\\s[\\s\\w]+)";
 
 	public SQLParser(boolean mode){
 		debug = mode;
@@ -66,7 +67,7 @@ public class SQLParser {
 			return Commands.delete(cmd);
 		}
 
-		else if(cmd.startsWith("SELECT")){
+		else if(cmd.matches(selectPattern)){
 			if(debug){
 				System.out.println(cmd + " is a SELECT");
 				return true;

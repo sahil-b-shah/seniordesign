@@ -7,9 +7,10 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONException;
 
 import Manager.ClusterManager;
+import NodeConnection.NodeConnection;
 
 public class Commands {
-	
+
 	private final static char REPLACEMENT_CHAR = '\uFFFC';
 
 	public static boolean join(){
@@ -26,58 +27,58 @@ public class Commands {
 	 */
 	public static boolean insert(String cmd) throws IOException, JSONException {
 		String primaryKey = "";
-		
+
 		final char[] rest = cmd.substring(cmd.indexOf("VALUES")).toCharArray();
-		
+
 		String[] values = getValues(rest);
 		primaryKey = values[0];
-		
+
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
-		
+
 		return ClusterManager.sendMessageToNode(cmd, "QUERY", nodeNumber);
 	}
-	
+
 	private static String[] getValues(char[] chars) {
 		boolean inString = false;
-	    int start = -1;
-	    int end   = -1;
-	    for (int i = 0; i<chars.length; i++)
-	    {
-	        final char c = chars[i];
-	        if ( inString && c == ',')
-	        {
-	            chars[i] = REPLACEMENT_CHAR;
-	        }
-	        else if ( c=='\'')
-	        {
-	            inString = !inString;
-	        }
-	        else if (!inString && c == '(')
-	        {
-	            if (start != -1)
-	                throw new AssertionError("Start brace found twice!");
+		int start = -1;
+		int end   = -1;
+		for (int i = 0; i<chars.length; i++)
+		{
+			final char c = chars[i];
+			if ( inString && c == ',')
+			{
+				chars[i] = REPLACEMENT_CHAR;
+			}
+			else if ( c=='\'')
+			{
+				inString = !inString;
+			}
+			else if (!inString && c == '(')
+			{
+				if (start != -1)
+					throw new AssertionError("Start brace found twice!");
 
-	            start = i+1;
-	        }
-	        else if (!inString && c == ')')
-	        {
-	            end = i-1;
-	            break;
-	        }
-	    }
+				start = i+1;
+			}
+			else if (!inString && c == ')')
+			{
+				end = i-1;
+				break;
+			}
+		}
 
-	    if (start == -1 || end == -1)
-	        throw new AssertionError("Start or end of the values part not found!");
+		if (start == -1 || end == -1)
+			throw new AssertionError("Start or end of the values part not found!");
 
 
-	    // split the result for having the values
-	    final String[] values = new String(chars, start, end-start+1).split("\\s*,\\s*");
-	    /*if (values.length != columns.length)
+		// split the result for having the values
+		final String[] values = new String(chars, start, end-start+1).split("\\s*,\\s*");
+		/*if (values.length != columns.length)
 	        throw new AssertionError("The number of values differs of the number of columns");*/
-	    return values;
+		return values;
 	}
-	
+
 	/**
 	 * Creates a distributed db
 	 * @param cmd: query from parser that starts with "CREATE DB"
@@ -113,10 +114,20 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean select(String cmd) {
-		//TODO: need to get response from message
-		return ClusterManager.sendMessagesToAllNodes(cmd);
+		if(ClusterManager.sendMessagesToAllNodes(cmd, "QUERY")){
+			try {
+				for(NodeConnection node: ClusterManager.getNodes()){
+					System.out.println(node.getResultString());
+				}
+				return true;
+			} 
+			catch (IOException | JSONException e) {
+				e.printStackTrace();
+			}
+		}
+		return false;
 	}
-	
+
 	/**
 	 * Picks which bucket hash value goes in
 	 * @param numWorkers - number of ranges to split
@@ -130,13 +141,13 @@ public class Commands {
 		}
 		BigInteger hash = new BigInteger(hashedValue, 16);
 		BigInteger bigMax = new BigInteger(maxValue, 16).add(BigInteger.ONE);
-		
+
 		BigInteger rangeSize = bigMax.divide(BigInteger.valueOf(numNodes));
-		
+
 		int bucket = hash.divide(rangeSize).intValue() + 1;
 		return bucket;
 	}
 
-	
-	
+
+
 }

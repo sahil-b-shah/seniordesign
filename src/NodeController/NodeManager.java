@@ -1,6 +1,5 @@
 package NodeController;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -8,7 +7,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -104,7 +102,7 @@ public class NodeManager {
 		
 		System.out.println("Done setup");
 		
-		//TODO: needs to constantly listen to socket and send queries based on commands from master 
+		//needs to constantly listen to socket and send queries based on commands from master 
 		while(true) {
 			try {
 				Socket s = socket.accept();
@@ -168,5 +166,6 @@ public class NodeManager {
 				break;
 			}
 		}
+		
 	}
 }

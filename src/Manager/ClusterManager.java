@@ -116,12 +116,11 @@ public class ClusterManager {
 		return nodes.size();
 	}
 	
-//	public static ArrayList<NodeConnection> getNodes() throws IOException, JSONException{
-//		if(managerInstance == null){
-//			managerInstance = new ClusterManager();
-//			initNodes();
-//		}
-//		return nodes;
-//	}
+	public static ArrayList<NodeConnection> getNodes() throws IOException, JSONException{
+		if(managerInstance == null){
+			managerInstance = getInstance();
+		}
+		return nodes;
+	}
 	
 }

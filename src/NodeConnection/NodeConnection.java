@@ -63,8 +63,15 @@ public class NodeConnection {
 	}
 	
 	public ResultSet getResultSet(){
-		//returns null if error returned(invalid query, etc)
+		//returns null if error returned(invalid query, etc
 		return null;
+	}
+	
+	public String getResultString(){
+		if(latestResult.isEmpty())
+			return null;
+		else
+			return latestResult;
 	}
 
 	public boolean updateSuccessful() {
