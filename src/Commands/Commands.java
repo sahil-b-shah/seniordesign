@@ -1,10 +1,16 @@
 package Commands;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import Manager.ClusterManager;
 import NodeConnection.NodeConnection;
@@ -12,6 +18,7 @@ import NodeConnection.NodeConnection;
 public class Commands {
 
 	private final static char REPLACEMENT_CHAR = '\uFFFC';
+	private static String tablesSettingsFileLocation = "./src/tables_settings.json";
 
 	public static boolean join(){
 		//TODO: Implement join
@@ -87,6 +94,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createDB(String cmd) throws IOException, JSONException {
+		
 		return ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
 	}
 
@@ -98,12 +106,65 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createTable(String cmd) throws IOException, JSONException {
+		
+		JSONObject obj = new JSONObject();
+		obj.put(parseTableName(cmd), parsePKIndices(cmd));
+		
+		try (FileWriter file = new FileWriter(tablesSettingsFileLocation)) {
+			file.write(obj.toString());
+			System.out.println("Succesfully wrote to settings file");
+		}
+		
 		return ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
 	}
 
 	public static boolean delete(String cmd) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	private static String parseTableName(String cmd) {
+		String createTableString = new String("CREATE TABLE");
+		
+		String tableName = cmd.substring(createTableString.length() + 1, cmd.indexOf('('));
+		tableName = tableName.replaceAll("\\s+", "");
+		System.out.println("Table name: " + tableName);
+		return tableName;
+	}
+	
+	private static List<Integer> parsePKIndices(String cmd) {
+		String temp = cmd.substring(cmd.indexOf('(')+1, cmd.lastIndexOf(')'));
+		
+		String[] columnDefinitions = temp.split(",");
+		
+		List<Integer> primarykeyIndices = new LinkedList<Integer>();
+		
+		Map<String, Integer> columns = new HashMap<String, Integer>();
+		
+		for (int i = 0; i < columnDefinitions.length; i++) {
+			String definitionLine = columnDefinitions[i];
+			
+			if ((i < (columnDefinitions.length - 1)) || (!definitionLine.startsWith("PRIMARY KEY"))) {
+				String columnName = definitionLine.substring(0, definitionLine.indexOf(' '));
+				System.out.println("Column[" + i +"]: " + columnName);
+				columns.put(columnName, i);
+			} else {
+				String pkColumnNamesString = definitionLine.
+						substring(definitionLine.indexOf('(')+1, definitionLine.lastIndexOf(')'));
+				String[] pkColumnNames = pkColumnNamesString.split(",");
+				
+				System.out.println("PK Names: " + pkColumnNames);
+				
+				for (String columnName : pkColumnNames) {
+					primarykeyIndices.add(columns.get(columnName));
+				}
+				
+			}
+			
+		}
+		
+		return primarykeyIndices;
+		
 	}
 
 	/**
