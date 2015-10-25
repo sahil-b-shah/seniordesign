@@ -1,14 +1,20 @@
 package Commands;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,15 +41,48 @@ public class Commands {
 	public static boolean insert(String cmd) throws IOException, JSONException {
 		String primaryKey = "";
 
+		String tableName = parseTableName(cmd, new String("INSERT INTO"));
+		
 		final char[] rest = cmd.substring(cmd.indexOf("VALUES")).toCharArray();
 
 		String[] values = getValues(rest);
-		primaryKey = values[0];
+		//primaryKey = values[0];
+		primaryKey = getConcatenatedPKsFromFile(tableName, values);
 
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
 
 		return ClusterManager.sendMessageToNode(cmd, "QUERY", nodeNumber);
+	}
+	
+	private static String getConcatenatedPKsFromFile(String tableName, String[] values) throws IOException, JSONException {
+		File f = new File(tablesSettingsFileLocation);
+		InputStream is = new FileInputStream(f);
+		String contents = readContentsOfFile(is);
+		String concatenated = "";
+		
+		JSONObject json = new JSONObject(contents);
+		JSONArray pks = new JSONArray(json.get(tableName).toString());
+
+		for (int i = 0; i < pks.length(); i++) {
+			int pk = pks.getInt(i);
+			
+			System.out.println("PK Index: " + pk + "Value: " + values[pk]);
+			concatenated = concatenated + values[pk];
+		}
+		
+		return concatenated;
+		
+	}
+	
+	private static String readContentsOfFile(InputStream is) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		int ch = -1;
+		while((ch = is.read()) != -1) {
+			sb.append((char) ch);
+		}
+		
+		return sb.toString();
 	}
 
 	private static String[] getValues(char[] chars) {
@@ -108,9 +147,9 @@ public class Commands {
 	public static boolean createTable(String cmd) throws IOException, JSONException {
 		
 		JSONObject obj = new JSONObject();
-		obj.put(parseTableName(cmd), parsePKIndices(cmd));
+		obj.put(parseTableName(cmd, new String("CREATE TABLE")), parsePKIndices(cmd));
 		
-		try (FileWriter file = new FileWriter(tablesSettingsFileLocation)) {
+		try (FileWriter file = new FileWriter(tablesSettingsFileLocation, true)) {
 			file.write(obj.toString());
 			System.out.println("Succesfully wrote to settings file");
 		}
@@ -123,10 +162,9 @@ public class Commands {
 		return false;
 	}
 	
-	private static String parseTableName(String cmd) {
-		String createTableString = new String("CREATE TABLE");
+	private static String parseTableName(String cmd, String sqlPrefix) {
 		
-		String tableName = cmd.substring(createTableString.length() + 1, cmd.indexOf('('));
+		String tableName = cmd.substring(sqlPrefix.length() + 1, cmd.indexOf('('));
 		tableName = tableName.replaceAll("\\s+", "");
 		System.out.println("Table name: " + tableName);
 		return tableName;

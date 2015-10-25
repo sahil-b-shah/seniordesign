@@ -70,7 +70,13 @@ public class CommandsTest {
 	
 	@Test
 	public void testInsert() {
-		
+		try {
+			assertTrue(Commands.insert("INSERT INTO Friends"
+					+ "VALUES (2, Shah, Sahil, 1326 Michillinda Ave)"));
+		} catch (IOException | JSONException e) {
+			assertTrue(false);
+			e.printStackTrace();
+		}
 	}
 
 }
