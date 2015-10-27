@@ -52,7 +52,7 @@ public class Commands {
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
 
-		return ClusterManager.sendMessageToNode(cmd, "QUERY", nodeNumber);
+		return ClusterManager.sendMessageToNode(cmd, "UPDATE", nodeNumber);
 	}
 	
 	private static String getConcatenatedPKsFromFile(String tableName, String[] values) throws IOException, JSONException {

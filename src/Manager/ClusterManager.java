@@ -8,23 +8,32 @@ import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ArrayBlockingQueue;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import NodeConnection.NodeConnection;
+import NodeConnection.NodeConnectionThread;
 
 
 public class ClusterManager {
 	
 	private static ClusterManager managerInstance;
-	private static ArrayList<NodeConnection> nodes;
 	private static String clusterConfigFileLocation = "./src/cluster_config.json";
 	private static String nodeConfigFileLocation = "./src/node_config.json";
 	private static String ip; // cluster manager's ip
 	private static int port; // cluster manager's port
 	private static ServerSocket clusterSocket;
+	private static ArrayBlockingQueue<Message> messageQueue;
+	private static Map<Integer, Thread> threadMap;
+	private static int nodeCount;
+	private static Map<Integer, String> nodeMap;
+	private static int successCount;
+
 	
 	public static ClusterManager getInstance() throws IOException, JSONException{
 		if(managerInstance == null){
@@ -59,9 +68,6 @@ public class ClusterManager {
 			managerInstance = new ClusterManager();
 		}
 		
-		nodes = new ArrayList<NodeConnection>();
-
-		//TODO: read from config file and add nodes to arraylist
 		File f = new File(nodeConfigFileLocation);
 		InputStream is = new FileInputStream(f);
 		String contents = readContentsOfFile(is);
@@ -69,58 +75,66 @@ public class ClusterManager {
 		JSONObject json = new JSONObject(contents);
 		JSONArray ndes = new JSONArray(json.get("nodes").toString());
 		
+		messageQueue = new ArrayBlockingQueue<Message>(10);
+		nodeCount = ndes.length();
+		int threadSize = json.getInt("thread_size");
+		
 		for (int i = 0; i < ndes.length(); i++) {
 			JSONObject nde = new JSONObject(ndes.get(i).toString());
 			String ip = nde.get("ip").toString();
 			int port = Integer.parseInt(nde.get("port").toString());
-			System.out.println(ip + " " + port);
-			nodes.add(new NodeConnection(ip, port));
+			nodeMap.put(i, ip + ":" + port);
+			
+		}	
+		
+		for (int i = 0; i < threadSize; i++) {
+			threadMap.put(i, new Thread(new NodeConnectionThread(messageQueue)));
+			threadMap.get(i).start();
 		}
-		
-		//TODO: send message to each node with the ip addresses of other nodes
-		
 	}
 	
 	public static boolean sendMessagesToAllNodes(String cmd, String type) {
-		for(NodeConnection node: nodes){
+		for (int i = 0; i < nodeCount; i++) {
+			String[] nodeAddr = nodeMap.get(i).split(":");
+			Message m = new Message(cmd, type, nodeAddr[0], Integer.parseInt(nodeAddr[1]), i);
 			try {
-				//create same new table on each node (same command for each node)
-				if (!(node.sendMessage(cmd, type) || node.updateSuccessful())) {
-					return false;
-				}
-				node.resetUpdate();
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;   //error in connection
+				messageQueue.put(m);
+			} 
+			catch (InterruptedException e1) {
+				e1.printStackTrace();
+				return false;
 			}
+			
 		}
+
 		return true;
 	}
 	
 	public static boolean sendMessageToNode(String cmd, String type, int nodeNumber) {
-		NodeConnection node = nodes.get(nodeNumber);
+		String[] nodeAddr = nodeMap.get(nodeNumber).split(":");
+		Message m = new Message(cmd, type, nodeAddr[0], Integer.parseInt(nodeAddr[1]), nodeNumber);
 		try {
-			//create same new table on each node (same command for each node)
-			if (!(node.sendMessage(cmd, type) || node.updateSuccessful())) {
-				return false;
-			}
-			node.resetUpdate();
-		} catch (Exception e) {
+			messageQueue.put(m);
+		} 
+		catch (InterruptedException e) {
 			e.printStackTrace();
-			return false;   //error in connection
+			return false;
 		}
+		
 		return true;
 	}
 	
-	public static int getNodesSize() {
-		return nodes.size();
+	/** TODO: figure out scheme to receive result sets/exception notifications from various threads (may be 
+	 *  create a concept of a job and sending a message to every node or a set of nodes is a job
+	 */
+	public static synchronized void incrementSuccessCount(String message, int nodeNum, boolean updateSuccessful) {
+		if (message != null) {
+			successCount++;
+		}
 	}
 	
-	public static ArrayList<NodeConnection> getNodes() throws IOException, JSONException{
-		if(managerInstance == null){
-			managerInstance = getInstance();
-		}
-		return nodes;
+	public static int getNodesSize() {
+		return nodeMap.size();
 	}
 	
 }
