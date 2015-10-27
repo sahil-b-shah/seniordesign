@@ -146,10 +146,19 @@ public class Commands {
 	 */
 	public static boolean createTable(String cmd) throws IOException, JSONException {
 		
-		JSONObject obj = new JSONObject();
+		//JSONObject obj = new JSONObject();
+		File f = new File(tablesSettingsFileLocation);
+		InputStream is = new FileInputStream(f);
+		String contents = readContentsOfFile(is);
+		JSONObject obj;
+		try {
+			obj = new JSONObject(contents);
+		} catch (JSONException e) {
+			obj = new JSONObject();
+		}
 		obj.put(parseTableName(cmd, new String("CREATE TABLE")), parsePKIndices(cmd));
 		
-		try (FileWriter file = new FileWriter(tablesSettingsFileLocation, true)) {
+		try (FileWriter file = new FileWriter(tablesSettingsFileLocation, false)) {
 			file.write(obj.toString());
 			System.out.println("Succesfully wrote to settings file");
 		}
@@ -171,7 +180,16 @@ public class Commands {
 	}
 	
 	private static List<Integer> parsePKIndices(String cmd) {
-		String temp = cmd.substring(cmd.indexOf('(')+1, cmd.lastIndexOf(')'));
+		//String temp = cmd.substring(cmd.indexOf('(')+1, cmd.lastIndexOf(')'));
+		int index;
+		String temp;
+		if ((index = cmd.indexOf("PRIMARY KEY")) != -1) {
+			temp = cmd.substring(cmd.indexOf('(')+1, index);
+		} else {
+			temp = cmd.substring(cmd.indexOf('(')+1, cmd.lastIndexOf(')'));
+		}
+		
+		System.out.println("Cleaned string " + temp);
 		
 		String[] columnDefinitions = temp.split(",");
 		
@@ -182,7 +200,13 @@ public class Commands {
 		for (int i = 0; i < columnDefinitions.length; i++) {
 			String definitionLine = columnDefinitions[i];
 			
-			if ((i < (columnDefinitions.length - 1)) || (!definitionLine.startsWith("PRIMARY KEY"))) {
+			System.out.println("Definition Line" + definitionLine);
+			
+			String columnName = definitionLine.substring(0, definitionLine.indexOf(' '));
+			System.out.println("Column[" + i +"]: " + columnName);
+			columns.put(columnName.trim(), i);
+			
+			/*if ((i < (columnDefinitions.length - 1)) || (!definitionLine.startsWith("PRIMARY KEY"))) {
 				String columnName = definitionLine.substring(0, definitionLine.indexOf(' '));
 				System.out.println("Column[" + i +"]: " + columnName);
 				columns.put(columnName, i);
@@ -197,11 +221,26 @@ public class Commands {
 					primarykeyIndices.add(columns.get(columnName));
 				}
 				
-			}
+			}*/
 			
 		}
 		
+		//Return index values if statement contains specified primary keys, other wise return
+		//array with assumed 0, as PK
+		if (index != -1) {
+			String PKLine = cmd.substring(index, cmd.lastIndexOf(')'));
+			String pkColumnNamesString = PKLine.
+					substring(PKLine.indexOf('(')+1, PKLine.lastIndexOf(')'));
+			System.out.println("pkColumns: "+pkColumnNamesString);
+			String[] pkColumnNames = pkColumnNamesString.split(",");
+			
+			for (String s : pkColumnNames) {
+				primarykeyIndices.add(columns.get(s.trim()));
+			}
+			
+		}
 		return primarykeyIndices;
+
 		
 	}
 
