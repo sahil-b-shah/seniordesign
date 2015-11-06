@@ -51,8 +51,24 @@ public class Commands {
 
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
+		
+		String jobId = ClusterManager.sendMessageToNode(cmd, "UPDATE", nodeNumber);
+		
+		while (true) {
+			String result = ClusterManager.getJobResult(jobId);
+			if (result == null) {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			else if (result.equals("Invalid Job ID")) {
+				return false;
+			}
+			return true;
+		}
 
-		return ClusterManager.sendMessageToNode(cmd, "UPDATE", nodeNumber);
 	}
 	
 	private static String getConcatenatedPKsFromFile(String tableName, String[] values) throws IOException, JSONException {
@@ -133,8 +149,22 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createDB(String cmd) throws IOException, JSONException {
+		String jobId = ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
 		
-		return ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
+		while (true) {
+			String result = ClusterManager.getJobResult(jobId);
+			if (result == null) {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			else if (result.equals("Invalid Job ID")) {
+				return false;
+			}
+			return true;
+		}		
 	}
 
 	/**
@@ -154,7 +184,22 @@ public class Commands {
 			System.out.println("Succesfully wrote to settings file");
 		}
 		
-		return ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
+		String jobId = ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
+		
+		while (true) {
+			String result = ClusterManager.getJobResult(jobId);
+			if (result == null) {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			else if (result.equals("Invalid Job ID")) {
+				return false;
+			}
+			return true;
+		}
 	}
 
 	public static boolean delete(String cmd) {
@@ -213,18 +258,24 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean select(String cmd) {
-		if(ClusterManager.sendMessagesToAllNodes(cmd, "QUERY")){
-			try {
-				for(NodeConnection node: ClusterManager.getNodes()){
-					System.out.println(node.getResultString());
+		String jobId = ClusterManager.sendMessagesToAllNodes(cmd, "QUERY");
+		
+		while (true) {
+			String result = ClusterManager.getJobResult(jobId);
+			if (result == null) {
+				try {
+					Thread.sleep(3000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-				return true;
-			} 
-			catch (IOException | JSONException e) {
-				e.printStackTrace();
 			}
+			else if (result.equals("Invalid Job ID")) {
+				return false;
+			}
+			
+			System.out.println(result);
+			return true;
 		}
-		return false;
 	}
 
 	/**

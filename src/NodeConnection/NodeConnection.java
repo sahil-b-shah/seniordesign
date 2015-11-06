@@ -1,3 +1,9 @@
+/* This Object is not being used. The functionality of this object was converted into a 
+ thread (used to create a thread pool in ClusterManager and NodeManager).
+ 
+ Still around as a reference for implementing NodeConnectionThread
+*/
+
 package NodeConnection;
 
 import java.io.BufferedReader;

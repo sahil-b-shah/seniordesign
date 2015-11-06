@@ -146,7 +146,7 @@ public class NodeManager {
 						}
 					}
 					else if(type.equals("QUERY")) {
-						retMessage += "Success\r\n" + db.runMySQLQuery(req);
+						retMessage += "Success\r\n\r\n" + db.runMySQLQuery(req);
 					}
 				} catch (SQLException e) {
 					System.out.println("SQLException while executing command " + req);

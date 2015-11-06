@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.sql.ResultSet;
 import java.util.concurrent.ArrayBlockingQueue;
 
 import Manager.ClusterManager;
@@ -26,7 +25,7 @@ public class NodeConnectionThread implements Runnable {
 		return new Socket(address, port);
 	}
 	
-	public String sendMessage(String query, String type, String ip, int port){
+	private String sendMessage(String query, String type, String ip, int port){
 		try {
 			socket = getSocket(ip, port);
 			PrintWriter pw = new PrintWriter(socket.getOutputStream());
@@ -34,29 +33,38 @@ public class NodeConnectionThread implements Runnable {
 			pw.flush();
 			
 			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			String response = "";
+			String responseHeaders = "";
+			String responseBody = "";
 			String r;
 			while((r = br.readLine()) != null) {
-				response += r + "\n";
+				if (r.trim().equals("")) {
+					break;
+				}
+				responseHeaders += r + "\n";
 			}
+			
+			while((r = br.readLine()) != null) {
+				responseBody += r + "\n";
+			}
+			
 			br.close();
 
 			socket.close();
 			socket = null;
-			if (response.toLowerCase().contains("success")) {
-				System.out.println("Successfully sent and received command");
+			if (responseHeaders.toLowerCase().contains("success")) {
+//				System.out.println("Successfully sent and received command");
 				updateSuccessful = true;
 			}
 			
 //			pw.close();
-			return response;
+			return responseBody;
 		} catch (IOException e) {
 			System.out.println("IOException in sendMessage()");
 			return "IOException";
 		}
 	}
 	
-	public void resetUpdate() {
+	private void resetUpdate() {
 		this.updateSuccessful = false;
 	}
 	
@@ -67,7 +75,7 @@ public class NodeConnectionThread implements Runnable {
 				Message m = queue.take();
 				resetUpdate();
 				String result = sendMessage(m.getCommand(), m.getType(), m.getIp(), m.getPort());
-				ClusterManager.incrementSuccessCount(result, m.getNodeNum(), updateSuccessful);
+				ClusterManager.recordNodeResponse(m.getJobId(), result, m.getNodeNum(), this.updateSuccessful);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

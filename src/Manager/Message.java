@@ -6,13 +6,15 @@ public class Message {
 	private String ip;
 	private int port;
 	private int nodeNum;
+	private String jobId;
 	
-	public Message(String cmd, String type, String ip, int port, int nodeNum) {
+	public Message(String cmd, String type, String ip, int port, int nodeNum, String jobId) {
 		this.command = cmd;
 		this.type = type;
 		this.ip = ip;
 		this.port = port;
 		this.nodeNum = nodeNum;
+		this.jobId = jobId;
 	}
 	
 	public String getCommand() {
@@ -33,5 +35,9 @@ public class Message {
 	
 	public int getNodeNum() {
 		return this.nodeNum;
+	}
+	
+	public String getJobId() {
+		return this.jobId;
 	}
 }
