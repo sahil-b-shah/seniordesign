@@ -37,6 +37,7 @@ public class CommandsTest {
 					+ "LastName varchar(255) NOT NULL,"
 					+ "FirstName varchar(255),"
 					+ "Address varchar(255),"
+					+ "Major varchar(30),"
 					+ "PRIMARY KEY(P_Id)"
 					+ ")"));
 		} catch (IOException e) {
@@ -57,6 +58,8 @@ public class CommandsTest {
 					+ "LastName varchar(255) NOT NULL,"
 					+ "FirstName varchar(255),"
 					+ "Address varchar(255),"
+					+ "Year varchar(255),"
+					+ "Major varchar(30),"
 					+ "PRIMARY KEY(P_Id, LastName)"
 					+ ")"));
 		} catch (IOException e) {
