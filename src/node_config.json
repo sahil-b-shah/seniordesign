@@ -1,7 +1,6 @@
 {
     "nodes": [
-        { "ip": "localhost", "port": "8082", "db_addr": "db1.cindziqwpa5z.us-east-1.rds.amazonaws.com" },
-        { "ip": "localhost", "port": "8083", "db_addr": "db2.cindziqwpa5z.us-east-1.rds.amazonaws.com" }
+        { "ip": "localhost", "port": "8082", "db_addr": "mydb1.cindziqwpa5z.us-east-1.rds.amazonaws.com" }
     ],
     "thread_size": 2
 }

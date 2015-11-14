@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -96,6 +98,7 @@ public class NodeManager {
 			initializeNodes(nodeNum);
 		} catch (IOException e) {
 			System.out.println("IOException while initializing nodes. Exiting");
+			e.printStackTrace();
 			return;
 		} catch (JSONException e) {
 			System.out.println("JSONException while parsing config files. Exiting");
@@ -103,6 +106,7 @@ public class NodeManager {
 		}
 		
 		try {
+			System.out.println("DBAddr: " + dbAddr);
 			db = new DBInstance(dbAddr, 3306, 1);
 		} catch (ClassNotFoundException e1) {
 			System.out.println("Make sure that you have correctly imported the JDBC libs");
@@ -114,8 +118,10 @@ public class NodeManager {
 		}
 		
 		System.out.println("Done setup");
+		queue = new LinkedBlockingQueue<NodeMessage>();
 		
 		daemonThread = new NodeDaemonThread(socket, db, queue);
+		threadPool = new ArrayList<NodeToNodeConnectionThread>();
 		
 		for (int i = 0; i < numThreads; i++) {
 			NodeToNodeConnectionThread t = new NodeToNodeConnectionThread(db, queue,

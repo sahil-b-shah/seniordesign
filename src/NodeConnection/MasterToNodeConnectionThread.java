@@ -60,6 +60,7 @@ public class MasterToNodeConnectionThread implements Runnable {
 			return responseBody;
 		} catch (IOException e) {
 			System.out.println("IOException in sendMessage()");
+			e.printStackTrace();
 			return "IOException";
 		}
 	}
