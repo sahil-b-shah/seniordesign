@@ -6,18 +6,18 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import Manager.ClusterManager;
 import Manager.Message;
 
-public class NodeConnectionThread implements Runnable {
+public class MasterToNodeConnectionThread implements Runnable {
 
 	private Socket socket;
 	private boolean updateSuccessful;
-	private ArrayBlockingQueue<Message> queue;
+	private BlockingQueue<Message> queue;
 	
-	public NodeConnectionThread(ArrayBlockingQueue<Message> queue){
+	public MasterToNodeConnectionThread(BlockingQueue<Message> queue){
 		this.queue = queue;
 	}
 
@@ -25,7 +25,7 @@ public class NodeConnectionThread implements Runnable {
 		return new Socket(address, port);
 	}
 	
-	private String sendMessage(String query, String type, String ip, int port){
+	private String sendQuery(String query, String type, String ip, int port){
 		try {
 			socket = getSocket(ip, port);
 			PrintWriter pw = new PrintWriter(socket.getOutputStream());
@@ -74,7 +74,7 @@ public class NodeConnectionThread implements Runnable {
 			try {
 				Message m = queue.take();
 				resetUpdate();
-				String result = sendMessage(m.getCommand(), m.getType(), m.getIp(), m.getPort());
+				String result = sendQuery(m.getCommand(), m.getType(), m.getIp(), m.getPort());
 				ClusterManager.recordNodeResponse(m.getJobId(), result, m.getNodeNum(), this.updateSuccessful);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block

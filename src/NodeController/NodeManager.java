@@ -1,32 +1,40 @@
 package NodeController;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import NodeConnection.NodeConnection;
+import NodeConnection.NodeMessage;
+import NodeConnection.NodeToNodeConnectionThread;
 
 public class NodeManager {
 
 	private static DBInstance db;
-	private static ArrayList<NodeConnection> nodes;
 	private static String clusterConfigFileLocation = "./src/cluster_config.json";
 	private static String nodeConfigFileLocation = "./src/node_config.json";
 	private static ServerSocket socket;
 	private static int nodeNum;
+	private static String dbAddr;
+	private static BlockingQueue<NodeMessage> queue;
+	private static String masterIP;
+	private static int masterPort;
+	private static Map<String, Integer> nodeAddrs;
+	private static String curNodeIP;
+	private static int curNodePort;
+	private static int numThreads;
+	private static List<NodeToNodeConnectionThread> threadPool;
+	private static NodeDaemonThread daemonThread;
 	
 	private static String readContentsOfFile(InputStream is) throws IOException {
 		StringBuilder sb = new StringBuilder();
@@ -44,9 +52,8 @@ public class NodeManager {
 		InputStream is = new FileInputStream(f);
 		String contents = readContentsOfFile(is);
 		JSONObject json = new JSONObject(contents);
-		String ip = json.get("ip").toString();
-		int port = Integer.parseInt(json.get("port").toString());
-//		nodes.add(new NodeConnection(ip, port));
+		masterIP = json.get("ip").toString();
+		masterPort = Integer.parseInt(json.get("port").toString());
 		
 		f = new File(nodeConfigFileLocation);
 		is = new FileInputStream(f);
@@ -54,29 +61,34 @@ public class NodeManager {
 		
 		json = new JSONObject(contents);
 		JSONArray ndes = new JSONArray(json.get("nodes").toString());
+		nodeAddrs = new HashMap<String, Integer>();
 		
 		for (int i = 0; i < ndes.length(); i++) {
 			JSONObject nde = new JSONObject(ndes.get(i).toString());
-			ip = nde.get("ip").toString();
-			port = Integer.parseInt(nde.get("port").toString());
+			String ip = nde.get("ip").toString();
+			int port = Integer.parseInt(nde.get("port").toString());
 			if (i != nodeNum) {
-//				nodes.add(new Node(ip, port));
+				nodeAddrs.put(ip, port);
 			}
 			else {
+				curNodeIP = ip;
+				curNodePort = port;
 				socket = new ServerSocket(port);
+				dbAddr = nde.getString("db_addr").toString();
 			}
 		}
 	}
 	
 	public static void main(String args[]){
 		if (args.length < 1) {
-			System.out.println("You need to specify what node this manager is running on");
+			System.out.println("Usage: NodeManager <curNodeIndex> <numThreads>");
 			return;
 		}
 		nodeNum = Integer.parseInt(args[0]);
+		numThreads = Integer.parseInt(args[1]);
 		
 		db = null;
-		nodes = null;
+//		nodes = null;
 		
 		System.out.println("Initializing Node " + args[0] + "...");
 
@@ -91,81 +103,27 @@ public class NodeManager {
 		}
 		
 		try {
-			db = new DBInstance("mydbinstance1.cq1ztbxovkrk.us-east-1.rds.amazonaws.com", 3306, 1);
+			db = new DBInstance(dbAddr, 3306, 1);
 		} catch (ClassNotFoundException e1) {
 			System.out.println("Make sure that you have correctly imported the JDBC libs");
 			return;
 		} catch (SQLException e1) {
+			e1.printStackTrace();
 			System.out.println("SQL exception while setting up connection to db");
 			return;
 		}
 		
 		System.out.println("Done setup");
 		
-		//needs to constantly listen to socket and send queries based on commands from master 
-		while(true) {
-			try {
-				Socket s = socket.accept();
-				System.out.println("Created socket for incoming message");
-				BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-				String req = "";
-				String type = "";
-				String line;
-				
-				boolean firstEmpty = true;
-				boolean first = true;
-				
-				while((line = in.readLine()) != null) {
-					if (line.trim().equals("") && !firstEmpty) {
-						break;
-					}
-					else if (line.trim().equals("")) {
-						firstEmpty = true;
-					}
-					else {
-						firstEmpty = false;
-					}
-					if (first) {
-						first = false;
-						type = line;
-					}
-					else {
-						req += line;
-					}
-				}
-				
-				String retMessage = "";
-
-				try {
-					if (type.equals("UPDATE")) {
-						if(db.runMySQLUpdate(req) == 0) {
-							retMessage += "Success\r\n\r\n";
-						}
-						else {
-							retMessage += "Failure\r\n\r\n";
-						}
-					}
-					else if(type.equals("QUERY")) {
-						retMessage += "Success\r\n\r\n" + db.runMySQLQuery(req);
-					}
-				} catch (SQLException e) {
-					System.out.println("SQLException while executing command " + req);
-					return;
-				}
-				
-				
-				BufferedWriter out = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-				
-				out.write(retMessage);
-				out.flush();
-				s.close();
-
-				System.out.println("-------\n");
-			} catch (IOException e) {
-				System.out.println("Error receiving message from master. Exiting");
-				break;
-			}
+		daemonThread = new NodeDaemonThread(socket, db, queue);
+		
+		for (int i = 0; i < numThreads; i++) {
+			NodeToNodeConnectionThread t = new NodeToNodeConnectionThread(db, queue,
+					masterIP, masterPort, nodeAddrs, curNodeIP, curNodePort);
+			threadPool.add(t);
+			((Thread) t).start();
 		}
 		
+		daemonThread.start();
 	}
 }

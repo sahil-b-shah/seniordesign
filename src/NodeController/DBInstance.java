@@ -18,7 +18,7 @@ public class DBInstance {
 		properties.put("user", "acesdatabases");
 		properties.put("password", "cis400ad");
 		connection = DriverManager.getConnection("jdbc:mysql://" + address +
-				":" + port + "/mydbinstance" + dbInstance, "acesdatabases", "cis400ad");
+				":" + port + "/db" + dbInstance, "acesdatabases", "cis400ad");
 	}
 	
 	public int runMySQLUpdate(String update) throws SQLException{		

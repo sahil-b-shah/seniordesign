@@ -15,7 +15,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import NodeConnection.NodeConnectionThread;
+import NodeConnection.MasterToNodeConnectionThread;
 
 
 public class ClusterManager {
@@ -89,7 +89,7 @@ public class ClusterManager {
 		
 		threadMap = new HashMap<Integer, Thread>();
 		for (int i = 0; i < threadSize; i++) {
-			threadMap.put(i, new Thread(new NodeConnectionThread(messageQueue)));
+			threadMap.put(i, new Thread(new MasterToNodeConnectionThread(messageQueue)));
 			threadMap.get(i).start();
 		}
 		
