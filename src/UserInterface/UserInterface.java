@@ -40,6 +40,7 @@ public class UserInterface {
 				break;  //program quit
 
 			try {
+				//ClusterManagerCheckStatusThread.detectError();   //make sure nodes ready to go
 				if(parser.parse(command))
 					System.out.println("\nCommand execueted. Print another MySQL Command  (Type 'exit' or 'quit' to end program)");
 				else

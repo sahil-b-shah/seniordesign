@@ -46,6 +46,7 @@ public class SQLParserTest {
 		}
 	}
 	
+	@Test
 	public void testInsertInvalid(){
 		try {
 			assertFalse(parser.parse("INSERT INTO VALUES blah blah blah"));
@@ -53,6 +54,19 @@ public class SQLParserTest {
 			assertFalse(parser.parse("INSERT INTO VALUES"));
 			assertFalse(parser.parse("INSERT INTO blah blah"));
 			assertFalse(parser.parse("INSERT blah blah VALUES blah blah"));
+		} catch (SQLException e) {
+			assertTrue(false);
+		} catch (IOException e) {
+			assertTrue(false);
+		} catch (JSONException e) {
+			assertTrue(false);
+		}
+	}
+	
+	@Test
+	public void testInnerJoinValid(){
+		try {
+			assertTrue(parser.parse("INNER JOIN Customers ON Orders.CustomerID=Customers.CustomerID"));
 		} catch (SQLException e) {
 			assertTrue(false);
 		} catch (IOException e) {

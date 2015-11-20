@@ -26,7 +26,7 @@ public class Commands {
 	private final static char REPLACEMENT_CHAR = '\uFFFC';
 	private static String tablesSettingsFileLocation = "./src/tables_settings.json";
 
-	public static boolean join(){
+	public static boolean inner_join(){
 		//TODO: Implement join
 		return false;
 	}	

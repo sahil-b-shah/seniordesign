@@ -13,6 +13,7 @@ public class SQLParser {
 	private boolean debug;
 	private String insertPattern = "(INSERT INTO\\s[\\s\\w]+VALUES\\s[\\s\\w]+)";
 	private String selectPattern = "(SELECT\\s[\\s\\w]+FROM\\s[\\s\\w]+)";
+	private String innerJoinPattern = "(INNER JOIN\\s[\\s\\w]+ON\\s[\\s\\w\\.]+=[\\s\\w\\.]+)";
 
 	public SQLParser(boolean mode){
 		debug = mode;
@@ -28,14 +29,12 @@ public class SQLParser {
 	 */
 	public boolean parse(String cmd) throws SQLException, IOException, JSONException{
 		
-		ClusterManagerCheckStatusThread.detectError();   //make sure nodes ready to go
-		
-		if(cmd.startsWith("JOIN")){
+		if(cmd.matches(innerJoinPattern)){
 			if(debug){
-				System.out.println(cmd + " is a JOIN");
+				System.out.println(cmd + " is a INNER JOIN");
 				return true;
 			}
-			return Commands.join();
+			return Commands.inner_join();
 		}
 
 		else if(cmd.matches(insertPattern)){
