@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import org.json.JSONException;
 
 import Commands.Commands;
+import Manager.ClusterManagerCheckStatusThread;
 
 public class SQLParser {
 
@@ -26,6 +27,9 @@ public class SQLParser {
 	 * @throws IOException 
 	 */
 	public boolean parse(String cmd) throws SQLException, IOException, JSONException{
+		
+		ClusterManagerCheckStatusThread.detectError();   //make sure nodes ready to go
+		
 		if(cmd.startsWith("JOIN")){
 			if(debug){
 				System.out.println(cmd + " is a JOIN");

@@ -120,6 +120,7 @@ public class NodeManager {
 		System.out.println("Done setup");
 		queue = new LinkedBlockingQueue<NodeMessage>();
 		
+		//NodeSendStatusThread statusThread = new NodeSendStatusThread(masterIP, masterPort);
 		daemonThread = new NodeDaemonThread(socket, db, queue);
 		threadPool = new ArrayList<NodeToNodeConnectionThread>();
 		
@@ -130,6 +131,7 @@ public class NodeManager {
 			((Thread) t).start();
 		}
 		
+		//statusThread.start();
 		daemonThread.start();
 	}
 }

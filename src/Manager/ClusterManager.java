@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +33,7 @@ public class ClusterManager {
 	private static Map<Integer, String> nodeMap;
 	private static Map<String, Job> jobs;
 	private static SecureRandom random = new SecureRandom();
+	private static HashMap<String, Long> statusMap;
 
 	
 	public static ClusterManager getInstance() throws IOException, JSONException{
@@ -94,6 +96,12 @@ public class ClusterManager {
 		}
 		
 		jobs = new HashMap<String, Job>();
+		
+		//TODO: uncomment to turn on error_detection
+		//ArrayBlockingQueue<Socket> statusQueue = new ArrayBlockingQueue<Socket>(50);
+		//ClusterManagerListeningThread lisThread =  new ClusterManagerListeningThread(port, statusQueue);
+		//ClusterManagerCheckStatusThread csThread = new ClusterManagerCheckStatusThread(statusMap);
+		//ClusterManagerStatusThread sThread = new ClusterManagerStatusThread(statusQueue,statusMap);
 	}
 	
 	public static String sendMessagesToAllNodes(String cmd, String type) {
