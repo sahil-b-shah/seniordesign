@@ -11,20 +11,6 @@ import Manager.ClusterManager;
 public class UserInterface {
 
 	public static void main(String[] args) {
-		try {
-			ClusterManager.initNodes();  // init ClusterManager and connection to all nodes
-		} 
-		catch (IOException e1) {
-			System.out.println("IOException while initializing ClusterManager. Quitting");
-			e1.printStackTrace();
-			return;
-		} 
-		catch (JSONException e1) {
-			System.out.println("JSONException while initializing ClusterManager. Quitting");
-			e1.printStackTrace();
-			return;
-		}
-		
 		Scanner scanner = new Scanner(System.in);
 		SQLParser parser = new SQLParser(false);
 		
