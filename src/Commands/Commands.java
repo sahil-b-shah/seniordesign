@@ -47,12 +47,12 @@ public class Commands {
 		primaryKey = getConcatenatedPKsFromFile(tableName, values);
 
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
-		int nodeNumber = pickNumberBucket(ClusterManager.getNodesSize(), hashedValue);
+		int nodeNumber = pickNumberBucket(ClusterManager.getInstance().getNodesSize(), hashedValue);
 		
-		String jobId = ClusterManager.sendMessageToNode(cmd, "UPDATE", nodeNumber);
+		String jobId = ClusterManager.getInstance().sendMessageToNode(cmd, "UPDATE", nodeNumber);
 		
 		while (true) {
-			String result = ClusterManager.getJobResult(jobId);
+			String result = ClusterManager.getInstance().getJobResult(jobId);
 			if (result == null) {
 				try {
 					Thread.sleep(3000);
@@ -161,10 +161,10 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createDB(String cmd) throws IOException, JSONException {
-		String jobId = ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
+		String jobId = ClusterManager.getInstance().sendMessagesToAllNodes(cmd, "UPDATE");
 		
 		while (true) {
-			String result = ClusterManager.getJobResult(jobId);
+			String result = ClusterManager.getInstance().getJobResult(jobId);
 			if (result == null) {
 				try {
 					Thread.sleep(3000);
@@ -205,10 +205,10 @@ public class Commands {
 			System.out.println("Succesfully wrote to settings file");
 		}
 		
-		String jobId = ClusterManager.sendMessagesToAllNodes(cmd, "UPDATE");
+		String jobId = ClusterManager.getInstance().sendMessagesToAllNodes(cmd, "UPDATE");
 		
 		while (true) {
-			String result = ClusterManager.getJobResult(jobId);
+			String result = ClusterManager.getInstance().getJobResult(jobId);
 			if (result == null) {
 				try {
 					Thread.sleep(3000);
@@ -307,11 +307,11 @@ public class Commands {
 	 * @throws JSONException 
 	 * @throws IOException 
 	 */
-	public static boolean select(String cmd) {
-		String jobId = ClusterManager.sendMessagesToAllNodes(cmd, "QUERY");
+	public static boolean select(String cmd) throws IOException, JSONException {
+		String jobId = ClusterManager.getInstance().sendMessagesToAllNodes(cmd, "QUERY");
 		
 		while (true) {
-			String result = ClusterManager.getJobResult(jobId);
+			String result = ClusterManager.getInstance().getJobResult(jobId);
 			if (result == null) {
 				try {
 					Thread.sleep(3000);
