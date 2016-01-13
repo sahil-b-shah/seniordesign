@@ -29,6 +29,7 @@ public class ClusterManager {
 	private Map<Integer, Thread> threadMap;
 	private int nodeCount;
 	private Map<Integer, String> nodeMap;
+	private Map<String, String> nodeDBMap;
 	private Map<String, Job> jobs;
 	private SecureRandom random = new SecureRandom();
 	private HashMap<String, Long> statusMap;
@@ -74,15 +75,17 @@ public class ClusterManager {
 		JSONArray ndes = new JSONArray(json.get("nodes").toString());
 		messageQueue = new ArrayBlockingQueue<Message>(10);
 		nodeCount = ndes.length();
-		int threadSize = json.getInt("thread_size");
+		int threadSize = json.getInt("master_to_node_connection_thread_pool");
 		
 		nodeMap = new HashMap<Integer, String>();
+		nodeDBMap = new HashMap<String, String>();
 		for (int i = 0; i < ndes.length(); i++) {
 			JSONObject nde = new JSONObject(ndes.get(i).toString());
 			String ip = nde.get("ip").toString();
 			int port = Integer.parseInt(nde.get("port").toString());
+			String db = nde.get("db_addr").toString();
 			nodeMap.put(i, ip + ":" + port);
-			
+			nodeDBMap.put(ip + ":" + port, db);
 		}	
 		
 		threadMap = new HashMap<Integer, Thread>();

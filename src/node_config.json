@@ -1,6 +1,6 @@
 {
-    "nodes": [
-        { "ip": "localhost", "port": "8082", "db_addr": "mydb1.cindziqwpa5z.us-east-1.rds.amazonaws.com" }
-    ],
-    "thread_size": 2
+    "master_ip": "localhost",
+    "master_port": 8081,
+    "node_ip": "localhost",
+    "node_port": 8082
 }
