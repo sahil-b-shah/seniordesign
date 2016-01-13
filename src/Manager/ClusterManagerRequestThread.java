@@ -4,16 +4,20 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
-public class ClusterManagerStatusThread extends Thread {
+public class ClusterManagerRequestThread extends Thread {
 	
 	private BlockingQueue<Socket> queue;
 	private HashMap<String, Long> statusMap;
+	private Map<String, String> nodeDBMap;
 	
-	public ClusterManagerStatusThread(BlockingQueue<Socket> queue,HashMap<String, Long> map){
+	public ClusterManagerRequestThread(BlockingQueue<Socket> queue, HashMap<String, Long> map, 
+			Map<String, String> nodeDBMap){
 		this.queue = queue;
 		this.statusMap = map;
+		this.nodeDBMap = nodeDBMap;
 	}
 	
 	public void run() {

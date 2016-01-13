@@ -2,19 +2,22 @@ package Manager;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
-public class ClusterManagerListeningThread extends Thread {
+public class ClusterManagerDaemonThread extends Thread {
 	
 	private ServerSocket serverSocket;
 	private int port;
 	public BlockingQueue<Socket> queue;
+	private Map<String, String> nodeDBMap;
 	
-	public ClusterManagerListeningThread(int port, BlockingQueue<Socket> queue){
+	public ClusterManagerDaemonThread(int port, BlockingQueue<Socket> queue, Map<String, String> nodeDBMap){
 		this.port = port;
 		this.queue = new LinkedBlockingQueue<Socket>();
+		this.nodeDBMap = nodeDBMap;
 	}
 	
 	public void run() {

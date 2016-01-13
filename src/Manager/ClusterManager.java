@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,39 +34,11 @@ public class ClusterManager {
 	private Map<String, Job> jobs;
 	private SecureRandom random = new SecureRandom();
 	private HashMap<String, Long> statusMap;
+	private ArrayBlockingQueue<Socket> statusQueue;
+	private ClusterManagerDaemonThread lisThread;
+	private ClusterManagerCheckStatusThread csThread;
+	private ClusterManagerRequestThread sThread;
 
-	
-	public static ClusterManager getInstance() throws IOException, JSONException{
-		if(managerInstance == null){
-			
-			//TODO: set password, server, etc
-			File f = new File(clusterConfigFileLocation);
-			InputStream is = new FileInputStream(f);
-			String contents = readContentsOfFile(is);
-			JSONObject json = new JSONObject(contents);
-			
-			managerInstance = new ClusterManager(json);
-			
-			//TODO: uncomment to turn on error_detection
-			//ArrayBlockingQueue<Socket> statusQueue = new ArrayBlockingQueue<Socket>(50);
-			//ClusterManagerListeningThread lisThread =  new ClusterManagerListeningThread(port, statusQueue);
-			//ClusterManagerCheckStatusThread csThread = new ClusterManagerCheckStatusThread(statusMap);
-			//ClusterManagerStatusThread sThread = new ClusterManagerStatusThread(statusQueue,statusMap);
-		}
-		
-		return managerInstance;
-	}
-	
-	private static String readContentsOfFile(InputStream is) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		int ch = -1;
-		while((ch = is.read()) != -1) {
-			sb.append((char) ch);
-		}
-		
-		return sb.toString();
-	}
-	
 	private ClusterManager(JSONObject json) throws JSONException, IOException {
 		jobs = new HashMap<String, Job>();
 		ip = json.get("ip").toString();
@@ -93,6 +66,37 @@ public class ClusterManager {
 			threadMap.put(i, new Thread(new MasterToNodeConnectionThread(messageQueue)));
 			threadMap.get(i).start();
 		}
+		
+		statusQueue = new ArrayBlockingQueue<Socket>(50);
+		lisThread =  new ClusterManagerDaemonThread(port, statusQueue, nodeDBMap);
+		csThread = new ClusterManagerCheckStatusThread(statusMap);
+		sThread = new ClusterManagerRequestThread(statusQueue, statusMap, nodeDBMap);
+	}
+	
+	public static ClusterManager getInstance() throws IOException, JSONException{
+		if(managerInstance == null){
+			
+			//TODO: set password, server, etc
+			File f = new File(clusterConfigFileLocation);
+			InputStream is = new FileInputStream(f);
+			String contents = readContentsOfFile(is);
+			JSONObject json = new JSONObject(contents);
+			
+			managerInstance = new ClusterManager(json);
+			
+		}
+		
+		return managerInstance;
+	}
+	
+	private static String readContentsOfFile(InputStream is) throws IOException {
+		StringBuilder sb = new StringBuilder();
+		int ch = -1;
+		while((ch = is.read()) != -1) {
+			sb.append((char) ch);
+		}
+		
+		return sb.toString();
 	}
 	
 	public String sendMessagesToAllNodes(String cmd, String type) {
