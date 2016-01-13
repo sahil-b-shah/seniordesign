@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import org.json.JSONException;
 
 import Commands.Commands;
-import Manager.ClusterManagerCheckStatusThread;
 
 public class SQLParser {
 
