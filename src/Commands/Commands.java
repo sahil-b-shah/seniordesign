@@ -2,12 +2,10 @@ package Commands;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,7 +17,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Manager.ClusterManager;
-import NodeConnection.NodeConnection;
 
 public class Commands {
 
@@ -32,9 +29,9 @@ public class Commands {
 	}	
 
 	/**
-	 * 
-	 * @param cmd
-	 * @return
+	 * Performs an insert of row
+	 * @param cmd: insert command to run
+	 * @return true if commands succeeds, false otherwise
 	 * @throws IOException
 	 * @throws JSONException
 	 */
@@ -71,6 +68,15 @@ public class Commands {
 
 	}
 	
+	/**
+	 * Gets primary keys from local storage
+	 * @param tableName: table to get keys from
+	 * @param values
+	 * @return 
+	 * @throws IOException
+	 * @throws JSONException
+	 */
+	
 	private static String getConcatenatedPKsFromFile(String tableName, String[] values) throws IOException, JSONException {
 		File f = new File(tablesSettingsFileLocation);
 		InputStream is = new FileInputStream(f);
@@ -91,6 +97,12 @@ public class Commands {
 		
 	}
 	
+	/**
+	 * Reads content of file
+	 * @param is - inputstream to read from
+	 * @return String containing file containing
+	 * @throws IOException
+	 */
 	private static String readContentsOfFile(InputStream is) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		int ch = -1;
@@ -217,7 +229,6 @@ public class Commands {
 	}
 	
 	private static String parseTableName(String cmd, String sqlPrefix) {
-		
 		String tableName = cmd.substring(sqlPrefix.length() + 1, cmd.indexOf('('));
 		tableName = tableName.replaceAll("\\s+", "");
 		System.out.println("Table name: " + tableName);
