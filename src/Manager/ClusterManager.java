@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,33 +22,35 @@ public class ClusterManager {
 	
 	private static ClusterManager managerInstance;
 	private static String clusterConfigFileLocation = "./src/cluster_config.json";
-	private static String nodeConfigFileLocation = "./src/node_config.json";
-	private static String ip; // cluster manager's ip
-	private static int port; // cluster manager's port
-	private static ServerSocket clusterSocket;
-	private static ArrayBlockingQueue<Message> messageQueue;
-	private static Map<Integer, Thread> threadMap;
-	private static int nodeCount;
-	private static Map<Integer, String> nodeMap;
-	private static Map<String, Job> jobs;
-	private static SecureRandom random = new SecureRandom();
-	private static HashMap<String, Long> statusMap;
+	private String ip; // cluster manager's ip
+	private int port; // cluster manager's port
+	private ServerSocket clusterSocket;
+	private ArrayBlockingQueue<Message> messageQueue;
+	private Map<Integer, Thread> threadMap;
+	private int nodeCount;
+	private Map<Integer, String> nodeMap;
+	private Map<String, Job> jobs;
+	private SecureRandom random = new SecureRandom();
+	private HashMap<String, Long> statusMap;
 
 	
 	public static ClusterManager getInstance() throws IOException, JSONException{
 		if(managerInstance == null){
-			managerInstance = new ClusterManager();
-			initNodes();
+			
+			//TODO: set password, server, etc
+			File f = new File(clusterConfigFileLocation);
+			InputStream is = new FileInputStream(f);
+			String contents = readContentsOfFile(is);
+			JSONObject json = new JSONObject(contents);
+			
+			managerInstance = new ClusterManager(json);
+			
+			//TODO: uncomment to turn on error_detection
+			//ArrayBlockingQueue<Socket> statusQueue = new ArrayBlockingQueue<Socket>(50);
+			//ClusterManagerListeningThread lisThread =  new ClusterManagerListeningThread(port, statusQueue);
+			//ClusterManagerCheckStatusThread csThread = new ClusterManagerCheckStatusThread(statusMap);
+			//ClusterManagerStatusThread sThread = new ClusterManagerStatusThread(statusQueue,statusMap);
 		}
-		
-		//TODO: set password, server, etc
-		File f = new File(clusterConfigFileLocation);
-		InputStream is = new FileInputStream(f);
-		String contents = readContentsOfFile(is);
-		JSONObject json = new JSONObject(contents);
-		ip = json.get("ip").toString();
-		port = Integer.parseInt(json.get("port").toString());
-		clusterSocket = new ServerSocket(port);
 		
 		return managerInstance;
 	}
@@ -64,18 +65,13 @@ public class ClusterManager {
 		return sb.toString();
 	}
 	
-	public static void initNodes() throws IOException, JSONException{
-		if(managerInstance == null){
-			managerInstance = new ClusterManager();
-		}
+	private ClusterManager(JSONObject json) throws JSONException, IOException {
+		jobs = new HashMap<String, Job>();
+		ip = json.get("ip").toString();
+		port = Integer.parseInt(json.get("port").toString());
+		clusterSocket = new ServerSocket(port);
 		
-		File f = new File(nodeConfigFileLocation);
-		InputStream is = new FileInputStream(f);
-		String contents = readContentsOfFile(is);
-		
-		JSONObject json = new JSONObject(contents);
 		JSONArray ndes = new JSONArray(json.get("nodes").toString());
-		
 		messageQueue = new ArrayBlockingQueue<Message>(10);
 		nodeCount = ndes.length();
 		int threadSize = json.getInt("thread_size");
@@ -94,17 +90,9 @@ public class ClusterManager {
 			threadMap.put(i, new Thread(new MasterToNodeConnectionThread(messageQueue)));
 			threadMap.get(i).start();
 		}
-		
-		jobs = new HashMap<String, Job>();
-		
-		//TODO: uncomment to turn on error_detection
-		//ArrayBlockingQueue<Socket> statusQueue = new ArrayBlockingQueue<Socket>(50);
-		//ClusterManagerListeningThread lisThread =  new ClusterManagerListeningThread(port, statusQueue);
-		//ClusterManagerCheckStatusThread csThread = new ClusterManagerCheckStatusThread(statusMap);
-		//ClusterManagerStatusThread sThread = new ClusterManagerStatusThread(statusQueue,statusMap);
 	}
 	
-	public static String sendMessagesToAllNodes(String cmd, String type) {
+	public String sendMessagesToAllNodes(String cmd, String type) {
 		String jobId = getNextJobId();
 		Job j = new Job(jobId, nodeCount);
 		jobs.put(jobId, j);
@@ -125,7 +113,7 @@ public class ClusterManager {
 		return jobId;
 	}
 	
-	public static String sendMessageToNode(String cmd, String type, int nodeNumber) {
+	public String sendMessageToNode(String cmd, String type, int nodeNumber) {
 		String[] nodeAddr = nodeMap.get(nodeNumber).split(":");
 		String jobId = getNextJobId();
 		Job j = new Job(jobId, 1);
@@ -146,7 +134,7 @@ public class ClusterManager {
 	/** TODO: figure out scheme to receive result sets/exception notifications from various threads (may be 
 	 *  create a concept of a job and sending a message to every node or a set of nodes is a job
 	 */
-	public static synchronized void recordNodeResponse(String jobId, String message, int nodeNum, boolean updateSuccessful) {
+	public synchronized void recordNodeResponse(String jobId, String message, int nodeNum, boolean updateSuccessful) {
 		Job j = jobs.get(jobId);
 		if (j == null) {
 			System.out.println("Trying to record a node response for a null job");
@@ -162,7 +150,7 @@ public class ClusterManager {
 		jobs.put(jobId, j);
 	}
 	
-	public static synchronized String getJobResult(String jobId) {
+	public synchronized String getJobResult(String jobId) {
 		Job j = jobs.get(jobId);
 		if (j == null) {
 			return "Invalid Job ID";
@@ -176,11 +164,11 @@ public class ClusterManager {
 		return null;
 	}
 	
-	public static int getNodesSize() {
+	public int getNodesSize() {
 		return nodeMap.size();
 	}
 
-	private static String getNextJobId() {
+	private String getNextJobId() {
 		return new BigInteger(130, random).toString(32);
 	}
 }
