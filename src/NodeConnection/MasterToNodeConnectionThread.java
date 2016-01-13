@@ -8,6 +8,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.BlockingQueue;
 
+import org.json.JSONException;
+
 import Manager.ClusterManager;
 import Manager.Message;
 
@@ -76,9 +78,16 @@ public class MasterToNodeConnectionThread implements Runnable {
 				Message m = queue.take();
 				resetUpdate();
 				String result = sendQuery(m.getCommand(), m.getType(), m.getIp(), m.getPort());
-				ClusterManager.recordNodeResponse(m.getJobId(), result, m.getNodeNum(), this.updateSuccessful);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+				ClusterManager managerInstance = ClusterManager.getInstance();
+				managerInstance.recordNodeResponse(m.getJobId(), result, m.getNodeNum(), this.updateSuccessful);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}
