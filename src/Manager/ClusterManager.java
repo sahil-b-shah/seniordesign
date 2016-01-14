@@ -68,6 +68,7 @@ public class ClusterManager {
 		}
 		
 		statusQueue = new ArrayBlockingQueue<Socket>(50);
+		statusMap = new HashMap<String, Long>();
 		lisThread =  new ClusterManagerDaemonThread(port, statusQueue, nodeDBMap);
 		csThread = new ClusterManagerCheckStatusThread(statusMap);
 		sThread = new ClusterManagerRequestThread(statusQueue, statusMap, nodeDBMap);
@@ -177,5 +178,9 @@ public class ClusterManager {
 
 	private String getNextJobId() {
 		return new BigInteger(130, random).toString(32);
+	}
+	
+	public boolean ready(){
+		return statusMap.size() == nodeMap.size();
 	}
 }

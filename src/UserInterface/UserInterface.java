@@ -13,8 +13,17 @@ public class UserInterface {
 	public static void main(String[] args) {
 		Scanner scanner = new Scanner(System.in);
 		SQLParser parser = new SQLParser(false);
-		
+		ClusterManager manager = null;
+		try {
+			manager = ClusterManager.getInstance();   //starts cluster manager
+		} catch (Exception e){
+			System.out.println("Cluster Manager could not start. Quitting...");
+			scanner.close();
+			return;
+		}
 		System.out.println("Starting user interface...");
+		while(manager.ready()){}  		//Wait until all nodes respond;
+
 		System.out.println("\nPrint MySQL Command (Type 'exit' or 'quit' to end program)");
 
 		String command = "";
