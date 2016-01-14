@@ -4,7 +4,7 @@
  Still around as a reference for implementing NodeConnectionThread
 */
 
-package NodeConnection;
+package MessageConnection;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.ResultSet;
 
-public class NodeConnection {
+public class MessageConnection {
 
 	private Socket socket;
 	private boolean updateSuccessful;
@@ -22,7 +22,7 @@ public class NodeConnection {
 	private String address;
 	private int port;
 	
-	public NodeConnection(String addr, int p){
+	public MessageConnection(String addr, int p){
 		port = p;
 		address = addr;
 		updateSuccessful = false;

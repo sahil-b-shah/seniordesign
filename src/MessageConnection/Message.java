@@ -1,13 +1,13 @@
-package NodeConnection;
+package MessageConnection;
 
 import java.net.Socket;
 
-public class NodeMessage {
+public class Message {
 	
 	private Socket socket;
 	private boolean messageFromMaster;
 
-	public NodeMessage(Socket s, boolean messageFromMaster) {
+	public Message(Socket s, boolean messageFromMaster) {
 		this.socket = s;
 		this.messageFromMaster = messageFromMaster;
 	}

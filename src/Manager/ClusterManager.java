@@ -16,7 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import NodeConnection.MasterToNodeConnectionThread;
+import MessageConnection.MasterToNodeConnectionThread;
 
 
 public class ClusterManager {

@@ -5,15 +5,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 
-import NodeConnection.NodeMessage;
+import MessageConnection.Message;
 
 public class NodeDaemonThread extends Thread {
 
 	private ServerSocket socket;
-	private BlockingQueue<NodeMessage> queue;
+	private BlockingQueue<Message> queue;
 
 	public NodeDaemonThread(ServerSocket s, DBInstance db,
-			BlockingQueue<NodeMessage> q) {
+			BlockingQueue<Message> q) {
 		this.socket = s;
 		this.queue = q;
 	}
@@ -23,7 +23,7 @@ public class NodeDaemonThread extends Thread {
 		while (true) {
 			try {
 				Socket s = socket.accept();
-				NodeMessage n = new NodeMessage(s, true);
+				Message n = new Message(s, true);
 				this.queue.put(n);
 			} 
 			catch (IOException e) {
