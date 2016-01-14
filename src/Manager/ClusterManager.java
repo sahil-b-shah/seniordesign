@@ -38,6 +38,7 @@ public class ClusterManager {
 	private ClusterManagerDaemonThread lisThread;
 	private ClusterManagerCheckStatusThread csThread;
 	private ClusterManagerRequestThread sThread;
+	private int readyCounter;
 
 	private ClusterManager(JSONObject json) throws JSONException, IOException {
 		jobs = new HashMap<String, Job>();
@@ -181,6 +182,10 @@ public class ClusterManager {
 	}
 	
 	public boolean ready(){
-		return statusMap.size() == nodeMap.size();
+		return readyCounter == nodeMap.size();
+	}
+
+	public void incrementReadyCounter() {
+		readyCounter++;
 	}
 }

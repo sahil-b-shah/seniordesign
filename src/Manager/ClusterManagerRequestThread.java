@@ -12,6 +12,7 @@ public class ClusterManagerRequestThread extends Thread {
 	private BlockingQueue<Socket> queue;
 	private HashMap<String, Long> statusMap;
 	private Map<String, String> nodeDBMap;
+	private int readyCounter;
 	
 	public ClusterManagerRequestThread(BlockingQueue<Socket> queue, HashMap<String, Long> map, 
 			Map<String, String> nodeDBMap){
@@ -30,10 +31,14 @@ public class ClusterManagerRequestThread extends Thread {
 				if(line.equals("STATUS UPDATE")){
 					statusMap.put(ip, System.currentTimeMillis());
 				}
+				else if (line.equals("READY")){
+					ClusterManager.getInstance().incrementReadyCounter();
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 	}
+	
 
 }
