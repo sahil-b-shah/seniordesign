@@ -72,13 +72,16 @@ public class CommandsTest {
 	}
 	
 	@Test
-	public void testInsert() {
+	public void tesInsertTableWithPK() {
 		try {
-			assertTrue(Commands.insert("INSERT INTO Friends"
-					+ "VALUES (2, Shah, Sahil, 1326 Michillinda Ave)"));
-		} catch (IOException | JSONException e) {
-			assertTrue(false);
+			assertTrue(Commands.insert("INSERT INTO Friends (P_Id, LastName, FirstName, Address, Year, Major)"
+					+ "VALUES (3, Shah, Sahil 1326 Michillinda Ave., 2016, CMPE)"));
+		} catch (IOException e) {
 			e.printStackTrace();
+			assertTrue(false);
+		} catch (JSONException e) {
+			e.printStackTrace();
+			assertTrue(false);
 		}
 	}
 
