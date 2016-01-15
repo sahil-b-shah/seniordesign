@@ -12,7 +12,7 @@ public class NodeDaemonThread extends Thread {
 	private ServerSocket socket;
 	private BlockingQueue<Message> queue;
 
-	public NodeDaemonThread(ServerSocket s, DBInstance db,
+	public NodeDaemonThread(ServerSocket s,
 			BlockingQueue<Message> q) {
 		this.socket = s;
 		this.queue = q;

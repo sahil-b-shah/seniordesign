@@ -70,7 +70,7 @@ public class ClusterManager {
 		
 		statusQueue = new ArrayBlockingQueue<Socket>(50);
 		statusMap = new HashMap<String, Long>();
-		lisThread =  new ClusterManagerDaemonThread(port, statusQueue, nodeDBMap);
+		lisThread =  new ClusterManagerDaemonThread(port, statusQueue, nodeDBMap, nodeMap);
 		csThread = new ClusterManagerCheckStatusThread(statusMap);
 		sThread = new ClusterManagerRequestThread(statusQueue, statusMap, nodeDBMap);
 	}

@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
@@ -22,14 +23,12 @@ public class NodeToNodeConnectionThread extends Thread {
 	private String curNodeIP;
 	private int curNodePort; 
 	
-	public NodeToNodeConnectionThread(DBInstance db, BlockingQueue<Message> q,
-			String masterIP, int masterPort, Map<String, Integer> nodeAddrs,
+	public NodeToNodeConnectionThread(BlockingQueue<Message> q,
+			String masterIP, int masterPort,
 			String curNodeIP, int curNodePort) {
-		this.db = db;
 		this.queue = q;
 		this.masterIP = masterIP;
 		this.masterPort = masterPort;
-		this.nodeAddrs = nodeAddrs;
 		this.curNodeIP = curNodeIP;
 		this.curNodePort = curNodePort;
 	}
@@ -53,6 +52,7 @@ public class NodeToNodeConnectionThread extends Thread {
 			else {
 				firstEmpty = false;
 			}
+			
 			if (first) {
 				first = false;
 				type = line;
@@ -73,7 +73,7 @@ public class NodeToNodeConnectionThread extends Thread {
 					retMessage += "Failure\r\n\r\n";
 				}
 			}
-			else if(type.equals("QUERY")) {
+			else if (type.equals("QUERY")) {
 				/*
 				 * IMPORTANT: here is where you would check if it is a JOIN
 				 * and process differently. You can open a socket to
@@ -85,9 +85,36 @@ public class NodeToNodeConnectionThread extends Thread {
 				 */
 				retMessage += "Success\r\n\r\n" + db.runMySQLQuery(req);
 			}
-		} catch (SQLException e) {
+			else if (type.equals("STATUS")) {
+				String[] lines = req.split("\r|\n|\r\n");
+				for (int i = 0; i < lines.length; i++) {
+					if (lines[i].startsWith("db_addr")) {
+						String[] dbData = lines[i].split("=")[1].trim().split(":");
+						// TODO: Need to remove third argument in DBInstance's constructor
+						db = new DBInstance(dbData[0], Integer.parseInt(dbData[1]), 0);
+					}
+					else if (lines[i].startsWith("nodes")) {
+						String[] nodeData = lines[i].split("=")[1].trim().split(";");
+						nodeAddrs = new HashMap<String, Integer>();
+						for (int nd = 0; nd < nodeData.length; nd++) {
+							String[] node = nodeData[nd].split(":");
+							nodeAddrs.put(node[0], Integer.parseInt(node[1]));
+						}
+					}
+				}
+				
+				retMessage += "READY\r\n\r\n";
+			}
+		}
+		catch (SQLException e) {
 			System.out.println("SQLException while executing command " + req);
 			return;
+		}
+		catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
+		catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
 		
 		

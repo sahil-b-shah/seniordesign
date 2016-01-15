@@ -31,9 +31,6 @@ public class ClusterManagerRequestThread extends Thread {
 				if(line.equals("STATUS UPDATE")){
 					statusMap.put(ip, System.currentTimeMillis());
 				}
-				else if (line.equals("READY")){
-					ClusterManager.getInstance().incrementReadyCounter();
-				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
