@@ -11,24 +11,19 @@ import Manager.ClusterManager;
 public class UserInterface {
 
 	public static void main(String[] args) {
-		try {
-			ClusterManager.initNodes();  // init ClusterManager and connection to all nodes
-		} 
-		catch (IOException e1) {
-			System.out.println("IOException while initializing ClusterManager. Quitting");
-			e1.printStackTrace();
-			return;
-		} 
-		catch (JSONException e1) {
-			System.out.println("JSONException while initializing ClusterManager. Quitting");
-			e1.printStackTrace();
-			return;
-		}
-		
 		Scanner scanner = new Scanner(System.in);
 		SQLParser parser = new SQLParser(false);
-		
+		ClusterManager manager = null;
+		try {
+			manager = ClusterManager.getInstance();   //starts cluster manager
+		} catch (Exception e){
+			System.out.println("Cluster Manager could not start. Quitting...");
+			scanner.close();
+			return;
+		}
 		System.out.println("Starting user interface...");
+		while(manager.ready()){}  		//Wait until all nodes respond;
+
 		System.out.println("\nPrint MySQL Command (Type 'exit' or 'quit' to end program)");
 
 		String command = "";
@@ -40,6 +35,7 @@ public class UserInterface {
 				break;  //program quit
 
 			try {
+				//ClusterManagerCheckStatusThread.detectError();   //make sure nodes ready to go
 				if(parser.parse(command))
 					System.out.println("\nCommand execueted. Print another MySQL Command  (Type 'exit' or 'quit' to end program)");
 				else

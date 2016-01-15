@@ -17,8 +17,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import NodeConnection.NodeMessage;
-import NodeConnection.NodeToNodeConnectionThread;
+import MessageConnection.Message;
+import MessageConnection.NodeToNodeConnectionThread;
 
 public class NodeManager {
 
@@ -28,7 +28,7 @@ public class NodeManager {
 	private static ServerSocket socket;
 	private static int nodeNum;
 	private static String dbAddr;
-	private static BlockingQueue<NodeMessage> queue;
+	private static BlockingQueue<Message> queue;
 	private static String masterIP;
 	private static int masterPort;
 	private static Map<String, Integer> nodeAddrs;
@@ -118,8 +118,9 @@ public class NodeManager {
 		}
 		
 		System.out.println("Done setup");
-		queue = new LinkedBlockingQueue<NodeMessage>();
+		queue = new LinkedBlockingQueue<Message>();
 		
+		//NodeSendStatusThread statusThread = new NodeSendStatusThread(masterIP, masterPort);
 		daemonThread = new NodeDaemonThread(socket, db, queue);
 		threadPool = new ArrayList<NodeToNodeConnectionThread>();
 		
@@ -130,6 +131,7 @@ public class NodeManager {
 			((Thread) t).start();
 		}
 		
+		//statusThread.start();
 		daemonThread.start();
 	}
 }

@@ -1,4 +1,4 @@
-package NodeConnection;
+package MessageConnection;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,7 +14,7 @@ import NodeController.DBInstance;
 
 public class NodeToNodeConnectionThread extends Thread {
 	
-	private BlockingQueue<NodeMessage> queue;
+	private BlockingQueue<Message> queue;
 	private DBInstance db;
 	private String masterIP;
 	private int masterPort;
@@ -22,7 +22,7 @@ public class NodeToNodeConnectionThread extends Thread {
 	private String curNodeIP;
 	private int curNodePort; 
 	
-	public NodeToNodeConnectionThread(DBInstance db, BlockingQueue<NodeMessage> q,
+	public NodeToNodeConnectionThread(DBInstance db, BlockingQueue<Message> q,
 			String masterIP, int masterPort, Map<String, Integer> nodeAddrs,
 			String curNodeIP, int curNodePort) {
 		this.db = db;
@@ -101,7 +101,7 @@ public class NodeToNodeConnectionThread extends Thread {
 	public void run() {
 		while (true) {
 			try {
-				NodeMessage nodeMessage = this.queue.take();
+				Message nodeMessage = this.queue.take();
 				Socket s = nodeMessage.getSocket();
 				
 				if (nodeMessage.isMessageFromMaster()) {
