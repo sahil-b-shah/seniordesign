@@ -39,8 +39,10 @@ public class ClusterManager {
 	private ClusterManagerCheckStatusThread csThread;
 	private ClusterManagerRequestThread sThread;
 	private int readyCounter;
+	private int numReplicas;
 
 	private ClusterManager(JSONObject json) throws JSONException, IOException {
+		numReplicas = json.getInt("number_replicas");
 		jobs = new HashMap<String, Job>();
 		ip = json.get("ip").toString();
 		port = Integer.parseInt(json.get("port").toString());
@@ -187,5 +189,9 @@ public class ClusterManager {
 
 	public void incrementReadyCounter() {
 		readyCounter++;
+	}
+	
+	public int getNumberReplicas(){
+		return numReplicas;
 	}
 }

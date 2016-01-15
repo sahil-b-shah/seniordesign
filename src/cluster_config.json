@@ -4,5 +4,6 @@
     "nodes": [
         { "ip": "localhost", "port": "8082", "db_addr": "mydb1.cindziqwpa5z.us-east-1.rds.amazonaws.com" }
     ],
-    "master_to_node_connection_thread_pool": 2
+    "master_to_node_connection_thread_pool": 2,
+    "number_replicas": 2
 }
