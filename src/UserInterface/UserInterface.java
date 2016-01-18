@@ -22,7 +22,7 @@ public class UserInterface {
 			return;
 		}
 		System.out.println("Starting user interface...");
-		while(manager.ready()){}  		//Wait until all nodes respond;
+		while(!manager.ready()){}  		//Wait until all nodes respond;
 
 		System.out.println("\nPrint MySQL Command (Type 'exit' or 'quit' to end program)");
 

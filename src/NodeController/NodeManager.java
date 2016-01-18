@@ -22,16 +22,11 @@ import MessageConnection.NodeToNodeConnectionThread;
 
 public class NodeManager {
 
-	private static DBInstance db;
-	private static String clusterConfigFileLocation = "./src/cluster_config.json";
 	private static String nodeConfigFileLocation = "./src/node_config.json";
 	private static ServerSocket socket;
-	private static int nodeNum;
-	private static String dbAddr;
 	private static BlockingQueue<Message> queue;
 	private static String masterIP;
 	private static int masterPort;
-	private static Map<String, Integer> nodeAddrs;
 	private static String curNodeIP;
 	private static int curNodePort;
 	private static int numThreads;
@@ -48,37 +43,16 @@ public class NodeManager {
 		return sb.toString();
 	}
 	
-	private static void initializeNodes(int nodeNum) throws IOException, JSONException {
+	private static void initializeNodes() throws IOException, JSONException {
 		// initialize the cluster manager node
-		File f = new File(clusterConfigFileLocation);
+		File f = new File(nodeConfigFileLocation);
 		InputStream is = new FileInputStream(f);
 		String contents = readContentsOfFile(is);
 		JSONObject json = new JSONObject(contents);
-		masterIP = json.get("ip").toString();
-		masterPort = Integer.parseInt(json.get("port").toString());
-		
-		f = new File(nodeConfigFileLocation);
-		is = new FileInputStream(f);
-		contents = readContentsOfFile(is);
-		
-		json = new JSONObject(contents);
-		JSONArray ndes = new JSONArray(json.get("nodes").toString());
-		nodeAddrs = new HashMap<String, Integer>();
-		
-		for (int i = 0; i < ndes.length(); i++) {
-			JSONObject nde = new JSONObject(ndes.get(i).toString());
-			String ip = nde.get("ip").toString();
-			int port = Integer.parseInt(nde.get("port").toString());
-			if (i != nodeNum) {
-				nodeAddrs.put(ip, port);
-			}
-			else {
-				curNodeIP = ip;
-				curNodePort = port;
-				socket = new ServerSocket(port);
-				dbAddr = nde.getString("db_addr").toString();
-			}
-		}
+		masterIP = json.get("master_ip").toString();
+		masterPort = Integer.parseInt(json.get("master_port").toString());
+		curNodeIP = json.getString("node_ip").toString();
+		curNodePort = Integer.parseInt(json.getString("node_port").toString());
 	}
 	
 	public static void main(String args[]){
@@ -86,16 +60,15 @@ public class NodeManager {
 			System.out.println("Usage: NodeManager <curNodeIndex> <numThreads>");
 			return;
 		}
-		nodeNum = Integer.parseInt(args[0]);
+
 		numThreads = Integer.parseInt(args[1]);
 		
-		db = null;
 //		nodes = null;
 		
 		System.out.println("Initializing Node " + args[0] + "...");
 
 		try {
-			initializeNodes(nodeNum);
+			initializeNodes();
 		} catch (IOException e) {
 			System.out.println("IOException while initializing nodes. Exiting");
 			e.printStackTrace();
@@ -105,28 +78,16 @@ public class NodeManager {
 			return;
 		}
 		
-		try {
-			System.out.println("DBAddr: " + dbAddr);
-			db = new DBInstance(dbAddr, 3306, 1);
-		} catch (ClassNotFoundException e1) {
-			System.out.println("Make sure that you have correctly imported the JDBC libs");
-			return;
-		} catch (SQLException e1) {
-			e1.printStackTrace();
-			System.out.println("SQL exception while setting up connection to db");
-			return;
-		}
-		
 		System.out.println("Done setup");
 		queue = new LinkedBlockingQueue<Message>();
 		
 		//NodeSendStatusThread statusThread = new NodeSendStatusThread(masterIP, masterPort);
-		daemonThread = new NodeDaemonThread(socket, db, queue);
+		daemonThread = new NodeDaemonThread(socket, queue);
 		threadPool = new ArrayList<NodeToNodeConnectionThread>();
 		
 		for (int i = 0; i < numThreads; i++) {
-			NodeToNodeConnectionThread t = new NodeToNodeConnectionThread(db, queue,
-					masterIP, masterPort, nodeAddrs, curNodeIP, curNodePort);
+			NodeToNodeConnectionThread t = new NodeToNodeConnectionThread(queue,
+					masterIP, masterPort, curNodeIP, curNodePort);
 			threadPool.add(t);
 			((Thread) t).start();
 		}

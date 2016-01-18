@@ -39,8 +39,10 @@ public class ClusterManager {
 	private ClusterManagerCheckStatusThread csThread;
 	private ClusterManagerRequestThread sThread;
 	private int readyCounter;
+	private int numReplicas;
 
 	private ClusterManager(JSONObject json) throws JSONException, IOException {
+		numReplicas = json.getInt("number_replicas");
 		jobs = new HashMap<String, Job>();
 		ip = json.get("ip").toString();
 		port = Integer.parseInt(json.get("port").toString());
@@ -70,7 +72,7 @@ public class ClusterManager {
 		
 		statusQueue = new ArrayBlockingQueue<Socket>(50);
 		statusMap = new HashMap<String, Long>();
-		lisThread =  new ClusterManagerDaemonThread(port, statusQueue, nodeDBMap);
+		lisThread =  new ClusterManagerDaemonThread(port, statusQueue, nodeDBMap, nodeMap);
 		csThread = new ClusterManagerCheckStatusThread(statusMap);
 		sThread = new ClusterManagerRequestThread(statusQueue, statusMap, nodeDBMap);
 	}
@@ -187,5 +189,9 @@ public class ClusterManager {
 
 	public void incrementReadyCounter() {
 		readyCounter++;
+	}
+	
+	public int getNumberReplicas(){
+		return numReplicas;
 	}
 }
