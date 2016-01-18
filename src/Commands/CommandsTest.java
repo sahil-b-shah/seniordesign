@@ -72,7 +72,7 @@ public class CommandsTest {
 	}
 	
 	@Test
-	public void tesInsertTableWithPK() {
+	public void testInsertTableWithPK() {
 		try {
 			assertTrue(Commands.insert("INSERT INTO Friends (P_Id, LastName, FirstName, Address, Year, Major)"
 					+ "VALUES (3, Shah, Sahil 1326 Michillinda Ave., 2016, CMPE)"));
