@@ -2,6 +2,7 @@ package Commands;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +46,7 @@ public class Commands {
 		String[] values = getValues(rest);
 		//primaryKey = values[0];
 		primaryKey = getConcatenatedPKsFromFile(tableName, values);
+		System.out.println("Concatenaed PK: " + primaryKey);
 
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getInstance().getNodesSize(), hashedValue);
@@ -84,6 +86,7 @@ public class Commands {
 		String concatenated = "";
 		
 		JSONObject json = new JSONObject(contents);
+		System.out.println("JSON read in " + json.toString());
 		JSONArray pks = new JSONArray(json.get(tableName).toString());
 
 		for (int i = 0; i < pks.length(); i++) {
@@ -190,8 +193,13 @@ public class Commands {
 		
 		//JSONObject obj = new JSONObject();
 		File f = new File(tablesSettingsFileLocation);
-		InputStream is = new FileInputStream(f);
-		String contents = readContentsOfFile(is);
+		String contents = "";
+		try {
+			InputStream is = new FileInputStream(f);
+			contents = readContentsOfFile(is);
+		} catch (FileNotFoundException e) {
+			
+		}
 		JSONObject obj;
 		try {
 			obj = new JSONObject(contents);
