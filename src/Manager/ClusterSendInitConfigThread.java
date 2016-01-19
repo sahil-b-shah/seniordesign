@@ -38,44 +38,53 @@ public class ClusterSendInitConfigThread extends Thread {
 		String nodeString = getNodeString();
 		String[] nodeAddr = nodeMap.get(index).split(":");
 		
-		try {
-			Socket s = new Socket(nodeAddr[0], Integer.parseInt(nodeAddr[1]));
-			PrintWriter out = new PrintWriter(s.getOutputStream(), true);
-			
-			out.write("STATUS\r\n");
-			out.write("db_addr=" + nodeDBMap.get(nodeMap.get(index)) + "\r\n");
-			out.write("nodes=" + nodeString + "\r\n");
-			out.write("\r\n");
-			
-			out.flush();
-			
-			BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
-			String line;
-			
-			while ((line = br.readLine()) != "\r\n") {
-				if (line.trim().equals("READY")) {
-					try {
-						ClusterManager cm = ClusterManager.getInstance();
-						cm.incrementReadyCounter();
-						break;
-					}
-					catch (JSONException e) {
-						e.printStackTrace();
+		while (true) {
+			try {
+				Socket s = new Socket(nodeAddr[0], Integer.parseInt(nodeAddr[1]));
+				PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+				
+				out.write("STATUS\r\n");
+				out.write("db_addr=" + nodeDBMap.get(nodeMap.get(index)) + "\r\n");
+				out.write("nodes=" + nodeString + "\r\n");
+				out.write("\r\n");
+				
+				out.flush();
+				
+				BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+				String line;
+				
+				while (! (line = br.readLine().trim()).equals("")) {
+					if (line.trim().equals("READY")) {
+						try {
+							ClusterManager cm = ClusterManager.getInstance();
+							cm.incrementReadyCounter();
+							break;
+						}
+						catch (JSONException e) {
+							e.printStackTrace();
+						}
 					}
 				}
+				
+				s.close();
+				break;
+			}
+			catch (NumberFormatException e) {
+				e.printStackTrace();
+			}
+			catch (UnknownHostException e) {
+				e.printStackTrace();
+			}
+			catch (IOException e) {
+				e.printStackTrace();
 			}
 			
-			s.close();
-			
-		}
-		catch (NumberFormatException e) {
-			e.printStackTrace();
-		}
-		catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
+			try {
+				Thread.sleep(10000);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		

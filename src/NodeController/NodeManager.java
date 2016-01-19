@@ -32,6 +32,8 @@ public class NodeManager {
 	private static int numThreads;
 	private static List<NodeToNodeConnectionThread> threadPool;
 	private static NodeDaemonThread daemonThread;
+	private static NodeSendStatusThread statusThread;
+	private static DBInstance db;
 	
 	private static String readContentsOfFile(InputStream is) throws IOException {
 		StringBuilder sb = new StringBuilder();
@@ -52,7 +54,16 @@ public class NodeManager {
 		masterIP = json.get("master_ip").toString();
 		masterPort = Integer.parseInt(json.get("master_port").toString());
 		curNodeIP = json.getString("node_ip").toString();
-		curNodePort = Integer.parseInt(json.getString("node_port").toString());
+		curNodePort = Integer.parseInt(json.get("node_port").toString());
+		socket = new ServerSocket(curNodePort);
+	}
+	
+	public static void setDB(DBInstance dbInstance) {
+		db = dbInstance;
+	}
+	
+	public static DBInstance getDB() {
+		return db;
 	}
 	
 	public static void main(String args[]){
@@ -69,21 +80,24 @@ public class NodeManager {
 
 		try {
 			initializeNodes();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			System.out.println("IOException while initializing nodes. Exiting");
 			e.printStackTrace();
 			return;
-		} catch (JSONException e) {
+		}
+		catch (JSONException e) {
 			System.out.println("JSONException while parsing config files. Exiting");
+			e.printStackTrace();
 			return;
 		}
 		
 		System.out.println("Done setup");
 		queue = new LinkedBlockingQueue<Message>();
 		
-		//NodeSendStatusThread statusThread = new NodeSendStatusThread(masterIP, masterPort);
 		daemonThread = new NodeDaemonThread(socket, queue);
 		threadPool = new ArrayList<NodeToNodeConnectionThread>();
+		statusThread = new NodeSendStatusThread(masterIP, masterPort);
 		
 		for (int i = 0; i < numThreads; i++) {
 			NodeToNodeConnectionThread t = new NodeToNodeConnectionThread(queue,
@@ -92,7 +106,7 @@ public class NodeManager {
 			((Thread) t).start();
 		}
 		
-		//statusThread.start();
 		daemonThread.start();
+		statusThread.start();
 	}
 }

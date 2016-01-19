@@ -15,10 +15,10 @@ public class DBInstance {
 	public DBInstance(String address, int port, int dbInstance) throws ClassNotFoundException, SQLException{
 		Class.forName("com.mysql.jdbc.Driver");
 		Properties properties = new Properties();
-		properties.put("user", "acesdatabases");
+		properties.put("user", "cis400");
 		properties.put("password", "cis400ad");
 		connection = DriverManager.getConnection("jdbc:mysql://" + address +
-				":" + port + "/db" + dbInstance, "acesdatabases", "cis400ad");
+				":" + port + "/db" + dbInstance, "cis400", "cis400ad");
 	}
 	
 	public int runMySQLUpdate(String update) throws SQLException{		
@@ -34,10 +34,14 @@ public class DBInstance {
 		ResultSet result = null;
 		statement = connection.createStatement();
 		result = statement.executeQuery(query);
-		statement.close();
 		
 		ResultSetMetaData rsmd = result.getMetaData();
 		int columns = rsmd.getColumnCount();
+		
+		System.out.println("Columns: " + columns);
+		for (int i = 1; i <= columns; i++) {
+			System.out.println("Column " + i + ": " + rsmd.getColumnLabel(i));
+		}
 
 		String res = "";
 		while (result.next()) {
@@ -47,6 +51,7 @@ public class DBInstance {
 			res += "\r\n";
 		}
 		
+		statement.close();
 		return res;
 	}
 }

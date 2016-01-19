@@ -229,7 +229,7 @@ public class Commands {
 	}
 	
 	private static String parseTableName(String cmd, String sqlPrefix) {
-		String tableName = cmd.substring(sqlPrefix.length() + 1, cmd.indexOf('('));
+		String tableName = cmd.substring(sqlPrefix.length() + 1, cmd.indexOf(' ', sqlPrefix.length()+2));
 		tableName = tableName.replaceAll("\\s+", "");
 		System.out.println("Table name: " + tableName);
 		return tableName;
@@ -344,7 +344,7 @@ public class Commands {
 
 		BigInteger rangeSize = bigMax.divide(BigInteger.valueOf(numNodes));
 
-		int bucket = hash.divide(rangeSize).intValue() + 1;
+		int bucket = hash.divide(rangeSize).intValue();
 		return bucket;
 	}
 

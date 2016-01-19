@@ -14,6 +14,7 @@ public class UserInterface {
 		Scanner scanner = new Scanner(System.in);
 		SQLParser parser = new SQLParser(false);
 		ClusterManager manager = null;
+		
 		try {
 			manager = ClusterManager.getInstance();   //starts cluster manager
 		} catch (Exception e){
@@ -21,8 +22,18 @@ public class UserInterface {
 			scanner.close();
 			return;
 		}
+		
 		System.out.println("Starting user interface...");
-		while(!manager.ready()){}  		//Wait until all nodes respond;
+		while(!manager.ready()){ //Wait until all nodes respond;
+			try {
+				System.out.println("Waiting for all nodes to respond");
+				Thread.sleep(5000);
+			}
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+		}
 
 		System.out.println("\nPrint MySQL Command (Type 'exit' or 'quit' to end program)");
 
@@ -42,12 +53,14 @@ public class UserInterface {
 					System.out.println("\nThat was an invalid command. Print another MySQL Command  (Type 'exit' or 'quit' to end program)");
 			} catch (SQLException e) {
 				System.out.println("\nSomething went wrong. Print another MySQL Command  (Type 'exit' or 'quit' to end program)");
-
+				e.printStackTrace();
 			} catch (IOException e) {
 				System.out.println("\nThere was an error opening the config files or creating Cluster socket. Exiting");
+				e.printStackTrace();
 				break;
 			} catch (JSONException e) {
 				System.out.println("\nThere was an error parsing the config files. Exiting");
+				e.printStackTrace();
 				break;
 			}
 		}

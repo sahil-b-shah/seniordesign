@@ -27,7 +27,6 @@ public class SQLParser {
 	 * @throws IOException 
 	 */
 	public boolean parse(String cmd) throws SQLException, IOException, JSONException{
-		
 		if(cmd.matches(innerJoinPattern)){
 			if(debug){
 				System.out.println(cmd + " is a INNER JOIN");
@@ -78,6 +77,7 @@ public class SQLParser {
 		}
 		else{
 			System.out.println(cmd + " is not a recognized command");
+//			return Commands.select(cmd); // uncomment if you want to hardcode an action if regex dont match correctly
 			return false;
 		}
 	}

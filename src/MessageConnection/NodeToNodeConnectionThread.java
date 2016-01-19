@@ -12,11 +12,11 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 
 import NodeController.DBInstance;
+import NodeController.NodeManager;
 
 public class NodeToNodeConnectionThread extends Thread {
 	
 	private BlockingQueue<Message> queue;
-	private DBInstance db;
 	private String masterIP;
 	private int masterPort;
 	private Map<String, Integer> nodeAddrs;
@@ -43,6 +43,7 @@ public class NodeToNodeConnectionThread extends Thread {
 		boolean first = true;
 		
 		while((line = in.readLine()) != null) {
+			System.out.println("Line: " + line);
 			if (line.trim().equals("") && !firstEmpty) {
 				break;
 			}
@@ -58,14 +59,16 @@ public class NodeToNodeConnectionThread extends Thread {
 				type = line;
 			}
 			else {
-				req += line;
+				req += line + "\n";
 			}
 		}
 		
 		String retMessage = "";
-
+		System.out.println("Type: " + type);
+		System.out.println("Req: " + req);
 		try {
 			if (type.equals("UPDATE")) {
+				DBInstance db = NodeManager.getDB();
 				if(db.runMySQLUpdate(req) == 0) {
 					retMessage += "Success\r\n\r\n";
 				}
@@ -83,15 +86,24 @@ public class NodeToNodeConnectionThread extends Thread {
 				 * thread is created (you would initialize and populate the map
 				 * in initializeNodes() in NodeManager)
 				 */
+				DBInstance db = NodeManager.getDB();
 				retMessage += "Success\r\n\r\n" + db.runMySQLQuery(req);
+				System.out.println("retMessage " + retMessage);
 			}
 			else if (type.equals("STATUS")) {
 				String[] lines = req.split("\r|\n|\r\n");
 				for (int i = 0; i < lines.length; i++) {
 					if (lines[i].startsWith("db_addr")) {
-						String[] dbData = lines[i].split("=")[1].trim().split(":");
-						// TODO: Need to remove third argument in DBInstance's constructor
-						db = new DBInstance(dbData[0], Integer.parseInt(dbData[1]), 0);
+						//dbInstance[0] will be the actual db addr, while dbInstance[1] will be the db instance number
+						String[] dbInstance = lines[i].split("/dbinstance=");
+						// Splitting the db addr for the db ip and port
+						String[] dbData = dbInstance[0].split("=")[1].trim().split(":");
+
+//						System.out.println("DB IP: " + dbData[0]);
+//						System.out.println("DB Port: " + dbData[1]);
+//						System.out.println("DB Num: " + dbInstance[1]);
+						DBInstance db = new DBInstance(dbData[0], Integer.parseInt(dbData[1]), Integer.parseInt(dbInstance[1]));
+						NodeManager.setDB(db);
 					}
 					else if (lines[i].startsWith("nodes")) {
 						String[] nodeData = lines[i].split("=")[1].trim().split(";");
@@ -107,6 +119,7 @@ public class NodeToNodeConnectionThread extends Thread {
 			}
 		}
 		catch (SQLException e) {
+			e.printStackTrace();
 			System.out.println("SQLException while executing command " + req);
 			return;
 		}
@@ -119,7 +132,7 @@ public class NodeToNodeConnectionThread extends Thread {
 		
 		
 		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-		
+		System.out.println(retMessage);
 		out.write(retMessage);
 		out.flush();
 	}

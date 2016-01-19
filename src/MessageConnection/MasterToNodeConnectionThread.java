@@ -31,7 +31,8 @@ public class MasterToNodeConnectionThread implements Runnable {
 		try {
 			socket = getSocket(ip, port);
 			PrintWriter pw = new PrintWriter(socket.getOutputStream());
-			pw.println(query + "\r\n\r\n");
+			pw.println(type);
+			pw.println(query + "\r\n");
 			pw.flush();
 			
 			BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));

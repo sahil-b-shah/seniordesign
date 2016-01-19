@@ -73,8 +73,11 @@ public class ClusterManager {
 		statusQueue = new ArrayBlockingQueue<Socket>(50);
 		statusMap = new HashMap<String, Long>();
 		lisThread =  new ClusterManagerDaemonThread(port, statusQueue, nodeDBMap, nodeMap);
+		lisThread.start();
 		csThread = new ClusterManagerCheckStatusThread(statusMap);
+		csThread.start();
 		sThread = new ClusterManagerRequestThread(statusQueue, statusMap, nodeDBMap);
+		sThread.start();
 	}
 	
 	public static ClusterManager getInstance() throws IOException, JSONException{

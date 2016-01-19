@@ -24,8 +24,15 @@ public class NodeSendStatusThread extends Thread{
 				out.flush();
 				socket.close();
 				Thread.sleep(15000);
-			} catch (Exception e) {
-				System.out.println("Error occured in node when sending status");
+			}
+			catch (Exception e) {
+				System.out.println("Error occured in node when sending status. May be ClusterManager is not up yet. Will retry in 15 secs");
+				try {
+					Thread.sleep(15000);
+				}
+				catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
 			}
 		}
 	}
