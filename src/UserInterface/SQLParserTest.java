@@ -35,8 +35,8 @@ public class SQLParserTest {
 	@Test
 	public void testInsertValid() {
 		try {
-			assertTrue(parser.parse("INSERT INTO blah blah blah VALUES blah blah blah"));
-			assertTrue(parser.parse("INSERT INTO blah VALUES blah"));
+			assertTrue(parser.parse("INSERT INTO blah VALUES (blah, blah, blah)"));
+			assertTrue(parser.parse("INSERT INTO blah(col,col) VALUES (blah, blah, blah)"));
 		} catch (SQLException e) {
 			assertTrue(false);
 		} catch (IOException e) {
@@ -54,6 +54,8 @@ public class SQLParserTest {
 			assertFalse(parser.parse("INSERT INTO VALUES"));
 			assertFalse(parser.parse("INSERT INTO blah blah"));
 			assertFalse(parser.parse("INSERT blah blah VALUES blah blah"));
+			assertFalse(parser.parse("INSERT INTO blah blah blah VALUES blah blah blah"));
+			assertFalse(parser.parse("INSERT INTO blah VALUES blah"));
 		} catch (SQLException e) {
 			assertTrue(false);
 		} catch (IOException e) {

@@ -10,8 +10,8 @@ import Commands.Commands;
 public class SQLParser {
 
 	private boolean debug;
-	private String insertPattern = "(INSERT INTO\\s[\\s\\w]+VALUES\\s[\\s\\w]+)";
-	private String selectPattern = "(SELECT\\s[\\s\\w]+FROM\\s[\\s\\w]+)";
+	private String insertPattern = "INSERT\\s+INTO\\s+(\\w+)\\s*(\\([\\w\\s\\,]+\\))?\\s+VALUES\\s+(\\([\\w\\s\\,]+\\))";
+	//private String selectPattern = "(SELECT\\s[\\s\\w]+FROM\\s[\\s\\w]+)";
 	private String innerJoinPattern = "(INNER JOIN\\s[\\s\\w]+ON\\s[\\s\\w\\.]+=[\\s\\w\\.]+)";
 
 	public SQLParser(boolean mode){
@@ -68,7 +68,7 @@ public class SQLParser {
 			return Commands.delete(cmd);
 		}
 
-		else if(cmd.matches(selectPattern)){
+		else if(cmd.startsWith("SELECT")){
 			if(debug){
 				System.out.println(cmd + " is a SELECT");
 				return true;
