@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -43,7 +44,7 @@ public class NodeToNodeConnectionThread extends Thread {
 		boolean first = true;
 		
 		while((line = in.readLine()) != null) {
-			System.out.println("Line: " + line);
+//			System.out.println("Line: " + line);
 			if (line.trim().equals("") && !firstEmpty) {
 				break;
 			}
@@ -69,11 +70,11 @@ public class NodeToNodeConnectionThread extends Thread {
 		try {
 			if (type.equals("UPDATE")) {
 				DBInstance db = NodeManager.getDB();
-				if(db.runMySQLUpdate(req) == 0) {
-					retMessage += "Success\r\n\r\n";
+				if(db.runMySQLUpdate(req) > 0) {
+					retMessage += "Success\r\n";
 				}
 				else {
-					retMessage += "Failure\r\n\r\n";
+					retMessage += "Failure\r\n";
 				}
 			}
 			else if (type.equals("QUERY")) {
@@ -87,8 +88,8 @@ public class NodeToNodeConnectionThread extends Thread {
 				 * in initializeNodes() in NodeManager)
 				 */
 				DBInstance db = NodeManager.getDB();
-				retMessage += "Success\r\n\r\n" + db.runMySQLQuery(req);
-				System.out.println("retMessage " + retMessage);
+				retMessage += "Success\r\n" + db.runMySQLQuery(req) + "\r\n";
+//				System.out.println("retMessage " + retMessage);
 			}
 			else if (type.equals("STATUS")) {
 				String[] lines = req.split("\r|\n|\r\n");
@@ -115,7 +116,7 @@ public class NodeToNodeConnectionThread extends Thread {
 					}
 				}
 				
-				retMessage += "READY\r\n\r\n";
+				retMessage += "READY\r\n";
 			}
 		}
 		catch (SQLException e) {
@@ -130,11 +131,12 @@ public class NodeToNodeConnectionThread extends Thread {
 			e.printStackTrace();
 		}
 		
-		
-		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(s.getOutputStream()));
-		System.out.println(retMessage);
-		out.write(retMessage);
-		out.flush();
+		PrintWriter pw = new PrintWriter(s.getOutputStream());
+		pw.println(retMessage);
+		pw.flush();
+		s.getOutputStream().flush();
+//		System.out.println("Ret Message:\n" + retMessage);
+		s.close();
 	}
 
 	@Override

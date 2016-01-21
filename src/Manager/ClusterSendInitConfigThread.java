@@ -54,6 +54,7 @@ public class ClusterSendInitConfigThread extends Thread {
 				String line;
 				
 				while (! (line = br.readLine().trim()).equals("")) {
+					System.out.println("Line: " + line);
 					if (line.trim().equals("READY")) {
 						try {
 							ClusterManager cm = ClusterManager.getInstance();

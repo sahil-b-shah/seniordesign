@@ -17,8 +17,10 @@ public class DBInstance {
 		Properties properties = new Properties();
 		properties.put("user", "cis400");
 		properties.put("password", "cis400ad");
+		System.out.println("Trying to establish connection to db");
 		connection = DriverManager.getConnection("jdbc:mysql://" + address +
-				":" + port + "/db" + dbInstance, "cis400", "cis400ad");
+				":" + port + "/database" + dbInstance, "cis400", "cis400ad");
+		System.out.println("Established connection to db");
 	}
 	
 	public int runMySQLUpdate(String update) throws SQLException{		
@@ -48,10 +50,9 @@ public class DBInstance {
 			for (int i = 1; i <= columns; i++) {
 				res += result.getString(i) + ",";
 			}
-			res += "\r\n";
 		}
 		
 		statement.close();
-		return res;
+		return res.substring(0, res.length() - 1);
 	}
 }

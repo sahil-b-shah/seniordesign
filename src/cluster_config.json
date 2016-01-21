@@ -2,7 +2,7 @@
     "ip": "localhost",
     "port": "8081",
     "nodes": [
-        { "ip": "localhost", "port": "8082", "db_addr": "db0.cindziqwpa5z.us-east-1.rds.amazonaws.com:3306/dbinstance=0" }
+        { "ip": "localhost", "port": "8082", "db_addr": "database0.cq1ztbxovkrk.us-east-1.rds.amazonaws.com:3306/dbinstance=0" }
     ],
     "master_to_node_connection_thread_pool": 2,
     "number_replicas": 2

@@ -39,16 +39,17 @@ public class MasterToNodeConnectionThread implements Runnable {
 			String responseHeaders = "";
 			String responseBody = "";
 			String r;
-			while((r = br.readLine()) != null) {
-				if (r.trim().equals("")) {
-					break;
-				}
-				responseHeaders += r + "\n";
+			
+			if((r = br.readLine()) != null) {
+				responseHeaders += r.trim();
 			}
 			
 			while((r = br.readLine()) != null) {
 				responseBody += r + "\n";
 			}
+			
+			System.out.println("Response Headers: " + responseHeaders);
+			System.out.println("Response Body: " + responseBody);
 			
 			br.close();
 
