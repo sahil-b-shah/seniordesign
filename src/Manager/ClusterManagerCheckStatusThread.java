@@ -1,6 +1,11 @@
 package Manager;
 
+import java.io.IOException;
 import java.util.HashMap;
+
+import org.json.JSONException;
+
+import Utilities.NodeStatus;
 
 public class ClusterManagerCheckStatusThread extends Thread{
 
@@ -22,18 +27,19 @@ public class ClusterManagerCheckStatusThread extends Thread{
 	}
 	
 	public static boolean detectError(){
-		
-		for(String ip: statusMap.keySet()){
-			long time = statusMap.get(ip);
+		boolean errors = false;
+		for(String address: statusMap.keySet()){
+			long time = statusMap.get(address);
 			if(System.currentTimeMillis() < (time + 30000)){
-				fixSystem();
-				return false;
+				errors = true;
+				try {
+					ClusterManager.getInstance().setNodeStatus(address, NodeStatus.FAILED);
+				} catch (IOException | JSONException e) {
+					e.printStackTrace();
+				}
 			}
 		}
-		return true;
+		return errors;
 	}
-	
-	private static void fixSystem(){
-		//TODO: fix system if error detected
-	}
+
 }

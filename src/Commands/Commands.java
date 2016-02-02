@@ -18,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import Manager.ClusterManager;
+import Utilities.NodeStatus;
 
 public class Commands {
 
@@ -37,10 +38,11 @@ public class Commands {
 	 * @throws JSONException
 	 */
 	public static boolean insert(String cmd) throws IOException, JSONException {
+		HashMap<String, Integer> messages = new HashMap<String, Integer>();
 		String primaryKey = "";
 
 		String tableName = parseTableName(cmd, new String("INSERT INTO"));
-		
+
 		final char[] rest = cmd.substring(cmd.indexOf("VALUES")).toCharArray();
 
 		String[] values = getValues(rest);
@@ -48,11 +50,23 @@ public class Commands {
 		primaryKey = getConcatenatedPKsFromFile(tableName, values);
 		System.out.println("Concatenaed PK: " + primaryKey);
 
+		//Get actual insert node and add message
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getInstance().getNodesSize(), hashedValue);
-		
-		String jobId = ClusterManager.getInstance().sendMessageToNode(cmd, "UPDATE", nodeNumber);
-		
+		messages.put(cmd, nodeNumber);
+
+		//Change table name to denote replica
+		String nodeAddress = ClusterManager.getInstance().getNodeAddress(nodeNumber);
+		String cmdReplica = replaceTableName(cmd, "INSERT INTO", nodeAddress);
+
+		//Add messages for replicas
+		for(int i = 0; i < ClusterManager.getInstance().getNumberReplicas(); i++){
+			int repNum = ClusterManager.getInstance().getNodeNumber(ClusterManager.getInstance().getReplicas(nodeAddress).get(i));
+			messages.put(cmdReplica, repNum);
+		}
+
+		String jobId = ClusterManager.getInstance().sendMessages(messages, "UPDATE");
+
 		while (true) {
 			String result = ClusterManager.getInstance().getJobResult(jobId);
 			if (result == null) {
@@ -69,7 +83,7 @@ public class Commands {
 		}
 
 	}
-	
+
 	/**
 	 * Gets primary keys from local storage
 	 * @param tableName: table to get keys from
@@ -78,28 +92,28 @@ public class Commands {
 	 * @throws IOException
 	 * @throws JSONException
 	 */
-	
+
 	private static String getConcatenatedPKsFromFile(String tableName, String[] values) throws IOException, JSONException {
 		File f = new File(tablesSettingsFileLocation);
 		InputStream is = new FileInputStream(f);
 		String contents = readContentsOfFile(is);
 		String concatenated = "";
-		
+
 		JSONObject json = new JSONObject(contents);
 		System.out.println("JSON read in " + json.toString());
 		JSONArray pks = new JSONArray(json.get(tableName).toString());
 
 		for (int i = 0; i < pks.length(); i++) {
 			int pk = pks.getInt(i);
-			
+
 			System.out.println("PK Index: " + pk + "Value: " + values[pk]);
 			concatenated = concatenated + values[pk];
 		}
-		
+
 		return concatenated;
-		
+
 	}
-	
+
 	/**
 	 * Reads content of file
 	 * @param is - inputstream to read from
@@ -112,7 +126,7 @@ public class Commands {
 		while((ch = is.read()) != -1) {
 			sb.append((char) ch);
 		}
-		
+
 		return sb.toString();
 	}
 
@@ -165,7 +179,7 @@ public class Commands {
 	 */
 	public static boolean createDB(String cmd) throws IOException, JSONException {
 		String jobId = ClusterManager.getInstance().sendMessagesToAllNodes(cmd, "UPDATE");
-		
+
 		while (true) {
 			String result = ClusterManager.getInstance().getJobResult(jobId);
 			if (result == null) {
@@ -190,7 +204,7 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createTable(String cmd) throws IOException, JSONException {
-		
+		HashMap<String, Integer> messages = new HashMap<String, Integer>();
 		//JSONObject obj = new JSONObject();
 		File f = new File(tablesSettingsFileLocation);
 		String contents = "";
@@ -198,7 +212,7 @@ public class Commands {
 			InputStream is = new FileInputStream(f);
 			contents = readContentsOfFile(is);
 		} catch (FileNotFoundException e) {
-			
+
 		}
 		JSONObject obj;
 		try {
@@ -207,14 +221,25 @@ public class Commands {
 			obj = new JSONObject();
 		}
 		obj.put(parseTableName(cmd, new String("CREATE TABLE")), parsePKIndices(cmd));
-		
+
 		try (FileWriter file = new FileWriter(tablesSettingsFileLocation, false)) {
 			file.write(obj.toString());
 			System.out.println("Succesfully wrote to settings file");
 		}
+
+		// Send table to all replicas
+		for (int i = 0; i < ClusterManager.getInstance().getNodesSize(); i++) {
+			messages.put(cmd, i);
+			String nodeAddress = ClusterManager.getInstance().getNodeAddress(i);
+			String cmdReplica = replaceTableName(cmd, "CREATE TABLE", nodeAddress);
+			for(int j = 0; j < ClusterManager.getInstance().getNumberReplicas(); j++){
+				int repNum = ClusterManager.getInstance().getNodeNumber(ClusterManager.getInstance().getReplicas(nodeAddress).get(j));
+				messages.put(cmdReplica, repNum);
+			}
+		}
 		
-		String jobId = ClusterManager.getInstance().sendMessagesToAllNodes(cmd, "UPDATE");
-		
+		String jobId = ClusterManager.getInstance().sendMessages(messages, "UPDATE");
+
 		while (true) {
 			String result = ClusterManager.getInstance().getJobResult(jobId);
 			if (result == null) {
@@ -232,17 +257,27 @@ public class Commands {
 	}
 
 	public static boolean delete(String cmd) {
-		// TODO Auto-generated method stub
+		// TODO implement this
 		return false;
 	}
-	
+
 	private static String parseTableName(String cmd, String sqlPrefix) {
 		String tableName = cmd.substring(sqlPrefix.length() + 1, cmd.indexOf(' ', sqlPrefix.length()+2));
 		tableName = tableName.replaceAll("\\s+", "");
 		System.out.println("Table name: " + tableName);
 		return tableName;
 	}
-	
+
+	public static String replaceTableName(String cmd, String sqlPrefix, String ip){
+		String newCmd = "";
+		String tableName = parseTableName(cmd, sqlPrefix);
+		String newTableName =  tableName + "REPLICA"+ip;
+		newCmd = cmd.substring(0, sqlPrefix.length() + 1) + newTableName + 
+				cmd.substring(sqlPrefix.length() + 1 + tableName.length());
+		return newCmd;
+
+	}
+
 	private static List<Integer> parsePKIndices(String cmd) {
 		//String temp = cmd.substring(cmd.indexOf('(')+1, cmd.lastIndexOf(')'));
 		int index;
@@ -252,24 +287,24 @@ public class Commands {
 		} else {
 			temp = cmd.substring(cmd.indexOf('(')+1, cmd.lastIndexOf(')'));
 		}
-		
+
 		System.out.println("Cleaned string " + temp);
-		
+
 		String[] columnDefinitions = temp.split(",");
-		
+
 		List<Integer> primarykeyIndices = new LinkedList<Integer>();
-		
+
 		Map<String, Integer> columns = new HashMap<String, Integer>();
-		
+
 		for (int i = 0; i < columnDefinitions.length; i++) {
 			String definitionLine = columnDefinitions[i];
-			
+
 			System.out.println("Definition Line" + definitionLine);
-			
+
 			String columnName = definitionLine.substring(0, definitionLine.indexOf(' '));
 			System.out.println("Column[" + i +"]: " + columnName);
 			columns.put(columnName.trim(), i);
-			
+
 			/*if ((i < (columnDefinitions.length - 1)) || (!definitionLine.startsWith("PRIMARY KEY"))) {
 				String columnName = definitionLine.substring(0, definitionLine.indexOf(' '));
 				System.out.println("Column[" + i +"]: " + columnName);
@@ -278,17 +313,17 @@ public class Commands {
 				String pkColumnNamesString = definitionLine.
 						substring(definitionLine.indexOf('(')+1, definitionLine.lastIndexOf(')'));
 				String[] pkColumnNames = pkColumnNamesString.split(",");
-				
+
 				System.out.println("PK Names: " + pkColumnNames);
-				
+
 				for (String columnName : pkColumnNames) {
 					primarykeyIndices.add(columns.get(columnName));
 				}
-				
+
 			}*/
-			
+
 		}
-		
+
 		//Return index values if statement contains specified primary keys, other wise return
 		//array with assumed 0, as PK
 		if (index != -1) {
@@ -297,15 +332,15 @@ public class Commands {
 					substring(PKLine.indexOf('(')+1, PKLine.lastIndexOf(')'));
 			System.out.println("pkColumns: "+pkColumnNamesString);
 			String[] pkColumnNames = pkColumnNamesString.split(",");
-			
+
 			for (String s : pkColumnNames) {
 				primarykeyIndices.add(columns.get(s.trim()));
 			}
-			
+
 		}
 		return primarykeyIndices;
 
-		
+
 	}
 
 	/**
@@ -316,8 +351,20 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean select(String cmd) throws IOException, JSONException {
-		String jobId = ClusterManager.getInstance().sendMessagesToAllNodes(cmd, "QUERY");
+		HashMap<String, Integer> messages = new HashMap<String, Integer>();
+	
+		for (int i = 0; i < ClusterManager.getInstance().getNodesSize(); i++) {
+			String address = ClusterManager.getInstance().getNodeAddress(i);
+			int nodeNumber = i;
+			if(ClusterManager.getInstance().getNodeStatus(address) != NodeStatus.ACTIVE){
+				nodeNumber = ClusterManager.getInstance().getActiveNodeReplica(address);
+				cmd = replaceTableName(cmd, "SELECT", ClusterManager.getInstance().getNodeAddress(nodeNumber));
+			}
+			messages.put(cmd, nodeNumber);
+		}
 		
+		String jobId = ClusterManager.getInstance().sendMessages(messages, "QUERY");
+
 		while (true) {
 			String result = ClusterManager.getInstance().getJobResult(jobId);
 			if (result == null) {
@@ -330,7 +377,7 @@ public class Commands {
 			else if (result.equals("Invalid Job ID")) {
 				return false;
 			}
-			
+
 			System.out.println(result);
 			return true;
 		}

@@ -84,5 +84,12 @@ public class CommandsTest {
 			assertTrue(false);
 		}
 	}
+	
+	@Test
+	public void testReplaceTableName(){
+		String cmd = "INSERT INTO master VALUES fkdafgnkdfn";
+		System.out.println(Commands.replaceTableName(cmd,"INSERT INTO",""));
+		assertEquals("INSERT INTO masterREPLICA VALUES fkdafgnkdfn", Commands.replaceTableName(cmd,"INSERT INTO",""));
+	}
 
 }
