@@ -2,8 +2,10 @@
     "ip": "localhost",
     "port": "8081",
     "nodes": [
-        { "ip": "localhost", "port": "8082", "db_addr": "database0.cq1ztbxovkrk.us-east-1.rds.amazonaws.com:3306/dbinstance=0" }
+    { "ip": "localhost", "port": "8082", "db_addr": "testdb0.cindziqwpa5z.us-east-1.rds.amazonaws.com:3306/dbinstance=0" },
+        { "ip": "localhost", "port": "8083", "db_addr": "testdb1.cindziqwpa5z.us-east-1.rds.amazonaws.com:3306/dbinstance=1" },
+        { "ip": "localhost", "port": "8084", "db_addr": "testdb2.cindziqwpa5z.us-east-1.rds.amazonaws.com:3306/dbinstance=2" }
     ],
     "master_to_node_connection_thread_pool": 2,
-    "number_replicas": 2
+    "number_replicas": 1
 }

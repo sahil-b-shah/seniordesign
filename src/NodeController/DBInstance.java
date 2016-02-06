@@ -19,7 +19,7 @@ public class DBInstance {
 		properties.put("password", "cis400ad");
 		System.out.println("Trying to establish connection to db");
 		connection = DriverManager.getConnection("jdbc:mysql://" + address +
-				":" + port + "/database" + dbInstance, "cis400", "cis400ad");
+				":" + port + "/testdb" + dbInstance, "cis400", "cis400ad");
 		System.out.println("Established connection to db");
 	}
 	

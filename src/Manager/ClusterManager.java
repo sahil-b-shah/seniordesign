@@ -56,6 +56,7 @@ public class ClusterManager {
 		jobs = new HashMap<String, Job>();
 		ip = json.get("ip").toString();
 		port = Integer.parseInt(json.get("port").toString());
+		System.out.print("Here");
 		clusterSocket = new ServerSocket(port);
 
 		JSONArray ndes = new JSONArray(json.get("nodes").toString());
@@ -99,18 +100,19 @@ public class ClusterManager {
 		sThread.start();
 	}
 
-	public static ClusterManager getInstance() throws IOException, JSONException{
-		if(managerInstance == null){
+	public synchronized static ClusterManager getInstance() throws IOException, JSONException{
+			System.out.println("Get instance");
+			if(managerInstance == null){
+				System.out.println("Creating ClusterManager");
+				//TODO: set password, server, etc
+				File f = new File(clusterConfigFileLocation);
+				InputStream is = new FileInputStream(f);
+				String contents = readContentsOfFile(is);
+				JSONObject json = new JSONObject(contents);
 
-			//TODO: set password, server, etc
-			File f = new File(clusterConfigFileLocation);
-			InputStream is = new FileInputStream(f);
-			String contents = readContentsOfFile(is);
-			JSONObject json = new JSONObject(contents);
-
-			managerInstance = new ClusterManager(json);
-
-		}
+				managerInstance = new ClusterManager(json);
+				System.out.println(managerInstance.ip);
+			}
 
 		return managerInstance;
 	}
@@ -145,7 +147,7 @@ public class ClusterManager {
 
 		return jobId;
 	}
-	
+
 	/**
 	 * Sends messages to appropriate nodes in one job
 	 * @param messages
@@ -156,7 +158,7 @@ public class ClusterManager {
 		String jobId = getNextJobId();
 		Job j = new Job(jobId, messages.size());
 		jobs.put(jobId, j);
-		
+
 		for(Entry<String, Integer> message: messages.entrySet()){
 			int i = message.getValue();
 			if(i==-1)
@@ -254,15 +256,15 @@ public class ClusterManager {
 		}
 		return -1;
 	}
-	
+
 	public void setNodeStatus(String address,NodeStatus status){
 		nodeStatus.put(address, status);
 	}
-	
+
 	public String getNodeAddress(int number){
 		return nodeMap.get(number);
 	}
-	
+
 	public int getNodeNumber(String address){
 		for(Entry<Integer, String> entry: nodeMap.entrySet()){
 			if(entry.getValue().equals(address) && getNodeStatus(entry.getValue()) == NodeStatus.ACTIVE)
@@ -270,11 +272,11 @@ public class ClusterManager {
 		}
 		return -1;
 	}
-	
+
 	public NodeStatus getNodeStatus(String address){
 		return nodeStatus.get(address);
 	}
-	
+
 	public List<String> getReplicas(String address){
 		return nodeReplicas.get(address);
 	}
