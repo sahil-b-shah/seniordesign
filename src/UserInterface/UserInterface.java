@@ -7,6 +7,7 @@ import java.util.Scanner;
 import org.json.JSONException;
 
 import Manager.ClusterManager;
+import Manager.ClusterManagerCheckStatusThread;
 
 public class UserInterface {
 
@@ -46,9 +47,9 @@ public class UserInterface {
 				break;  //program quit
 
 			try {
-				//ClusterManagerCheckStatusThread.detectError();   //make sure nodes ready to go
+				ClusterManagerCheckStatusThread.detectError();   //make sure nodes ready to go
 				if(parser.parse(command))
-					System.out.println("\nCommand execueted. Print another MySQL Command  (Type 'exit' or 'quit' to end program)");
+					System.out.println("\nCommand executed. Print another MySQL Command  (Type 'exit' or 'quit' to end program)");
 				else
 					System.out.println("\nThat was an invalid command. Print another MySQL Command  (Type 'exit' or 'quit' to end program)");
 			} catch (SQLException e) {

@@ -25,11 +25,11 @@ public class ClusterManagerRequestThread extends Thread {
 		while(true){
 			try {
 				Socket socket = queue.take();
-				String ip = socket.getInetAddress().getHostAddress();
-				int port = socket.getPort();
+				String ip = socket.getInetAddress().getHostName();
 				BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				String line = br.readLine();	
-				if(line.equals("STATUS UPDATE")){
+				if(line.startsWith("STATUS UPDATE")){
+					int port = Integer.parseInt(line.split(",")[1]);
 					statusMap.put(ip+":"+port, System.currentTimeMillis());
 				}
 			} catch (Exception e) {

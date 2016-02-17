@@ -44,7 +44,6 @@ public class NodeToNodeConnectionThread extends Thread {
 		boolean first = true;
 		
 		while((line = in.readLine()) != null) {
-//			System.out.println("Line: " + line);
 			if (line.trim().equals("") && !firstEmpty) {
 				break;
 			}
@@ -70,7 +69,7 @@ public class NodeToNodeConnectionThread extends Thread {
 		try {
 			if (type.equals("UPDATE")) {
 				DBInstance db = NodeManager.getDB();
-				if(db.runMySQLUpdate(req) > 0) {
+				if(db.runMySQLUpdate(req) >= 0) {
 					retMessage += "Success\r\n";
 				}
 				else {
@@ -146,7 +145,9 @@ public class NodeToNodeConnectionThread extends Thread {
 				Message nodeMessage = this.queue.take();
 				Socket s = nodeMessage.getSocket();
 				
+				//System.out.println("Got message");
 				if (nodeMessage.isMessageFromMaster()) {
+					//System.out.println("Processing message");
 					processMessageFromMaster(s);
 				}
 				else {

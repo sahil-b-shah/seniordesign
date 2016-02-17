@@ -11,6 +11,8 @@ import java.util.Map.Entry;
 
 import org.json.JSONException;
 
+import Utilities.NodeStatus;
+
 public class ClusterSendInitConfigThread extends Thread {
 	private Map<Integer, String> nodeMap;
 	private Map<String, String> nodeDBMap;
@@ -59,6 +61,7 @@ public class ClusterSendInitConfigThread extends Thread {
 						try {
 							ClusterManager cm = ClusterManager.getInstance();
 							cm.incrementReadyCounter();
+							ClusterManager.getInstance().setNodeStatus(nodeMap.get(index), NodeStatus.ACTIVE);
 							break;
 						}
 						catch (JSONException e) {

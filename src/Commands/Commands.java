@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,7 +39,8 @@ public class Commands {
 	 * @throws JSONException
 	 */
 	public static boolean insert(String cmd) throws IOException, JSONException {
-		HashMap<String, Integer> messages = new HashMap<String, Integer>();
+		HashMap<String, List<Integer>> messages = new HashMap<String, List<Integer>>();
+		int count = 0;
 		String primaryKey = "";
 
 		String tableName = parseTableName(cmd, new String("INSERT INTO"));
@@ -53,7 +55,12 @@ public class Commands {
 		//Get actual insert node and add message
 		String hashedValue = DigestUtils.sha1Hex(primaryKey);
 		int nodeNumber = pickNumberBucket(ClusterManager.getInstance().getNodesSize(), hashedValue);
-		messages.put(cmd, nodeNumber);
+		List<Integer> nodes = messages.get(cmd);
+		if(nodes == null)
+			nodes = new ArrayList<Integer>();
+		nodes.add(nodeNumber);
+		messages.put(cmd, nodes);
+		count++;
 
 		//Change table name to denote replica
 		String nodeAddress = ClusterManager.getInstance().getNodeAddress(nodeNumber);
@@ -62,10 +69,15 @@ public class Commands {
 		//Add messages for replicas
 		for(int i = 0; i < ClusterManager.getInstance().getNumberReplicas(); i++){
 			int repNum = ClusterManager.getInstance().getNodeNumber(ClusterManager.getInstance().getReplicas(nodeAddress).get(i));
-			messages.put(cmdReplica, repNum);
+			List<Integer> tempNodes = messages.get(cmdReplica);
+			if(tempNodes == null)
+				tempNodes = new ArrayList<Integer>();
+			tempNodes.add(repNum);
+			messages.put(cmdReplica, tempNodes);
+			count++;
 		}
 
-		String jobId = ClusterManager.getInstance().sendMessages(messages, "UPDATE");
+		String jobId = ClusterManager.getInstance().sendMessages(messages, "UPDATE", count);
 
 		while (true) {
 			String result = ClusterManager.getInstance().getJobResult(jobId);
@@ -204,8 +216,8 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean createTable(String cmd) throws IOException, JSONException {
-		HashMap<String, Integer> messages = new HashMap<String, Integer>();
-		//JSONObject obj = new JSONObject();
+		HashMap<String, List<Integer>> messages = new HashMap<String, List<Integer>>();		//JSONObject obj = new JSONObject();
+		int count = 0;
 		File f = new File(tablesSettingsFileLocation);
 		String contents = "";
 		try {
@@ -229,16 +241,27 @@ public class Commands {
 
 		// Send table to all replicas
 		for (int i = 0; i < ClusterManager.getInstance().getNodesSize(); i++) {
-			messages.put(cmd, i);
+			List<Integer> nodes = messages.get(cmd);
+			if(nodes == null)
+				nodes = new ArrayList<Integer>();
+			nodes.add(i);
+			messages.put(cmd, nodes);
+			count++;
 			String nodeAddress = ClusterManager.getInstance().getNodeAddress(i);
 			String cmdReplica = replaceTableName(cmd, "CREATE TABLE", nodeAddress);
+			List<String> list = ClusterManager.getInstance().getReplicas(nodeAddress);
 			for(int j = 0; j < ClusterManager.getInstance().getNumberReplicas(); j++){
-				int repNum = ClusterManager.getInstance().getNodeNumber(ClusterManager.getInstance().getReplicas(nodeAddress).get(j));
-				messages.put(cmdReplica, repNum);
+				int repNum = ClusterManager.getInstance().getNodeNumber(list.get(j));
+				List<Integer> tempNodes = messages.get(cmdReplica);
+				if(tempNodes == null)
+					tempNodes = new ArrayList<Integer>();
+				tempNodes.add(repNum);
+				messages.put(cmdReplica, tempNodes);
+				count++;
 			}
 		}
 		
-		String jobId = ClusterManager.getInstance().sendMessages(messages, "UPDATE");
+		String jobId = ClusterManager.getInstance().sendMessages(messages, "UPDATE", count);
 
 		while (true) {
 			String result = ClusterManager.getInstance().getJobResult(jobId);
@@ -271,6 +294,7 @@ public class Commands {
 	public static String replaceTableName(String cmd, String sqlPrefix, String ip){
 		String newCmd = "";
 		String tableName = parseTableName(cmd, sqlPrefix);
+		ip = ip.replace(":", "");
 		String newTableName =  tableName + "REPLICA"+ip;
 		newCmd = cmd.substring(0, sqlPrefix.length() + 1) + newTableName + 
 				cmd.substring(sqlPrefix.length() + 1 + tableName.length());
@@ -351,22 +375,29 @@ public class Commands {
 	 * @throws IOException 
 	 */
 	public static boolean select(String cmd) throws IOException, JSONException {
-		HashMap<String, Integer> messages = new HashMap<String, Integer>();
-	
+		HashMap<String, List<Integer>> messages = new HashMap<String, List<Integer>>();	
+		int count = 0;
 		for (int i = 0; i < ClusterManager.getInstance().getNodesSize(); i++) {
 			String address = ClusterManager.getInstance().getNodeAddress(i);
 			int nodeNumber = i;
+			String tempCmd = cmd;
 			if(ClusterManager.getInstance().getNodeStatus(address) != NodeStatus.ACTIVE){
 				nodeNumber = ClusterManager.getInstance().getActiveNodeReplica(address);
-				cmd = replaceTableName(cmd, "SELECT", ClusterManager.getInstance().getNodeAddress(nodeNumber));
+				tempCmd =cmd + "REPLICA" + address;
+				tempCmd = tempCmd.replace(":", "");
 			}
-			messages.put(cmd, nodeNumber);
+			List<Integer> nodes = messages.get(tempCmd);
+			if(nodes == null)
+				nodes = new ArrayList<Integer>();
+			nodes.add(nodeNumber);
+			messages.put(tempCmd, nodes);
+			count++;
 		}
 		
-		String jobId = ClusterManager.getInstance().sendMessages(messages, "QUERY");
-
+		String jobId = ClusterManager.getInstance().sendMessages(messages, "QUERY", count);
+		String result ="";
 		while (true) {
-			String result = ClusterManager.getInstance().getJobResult(jobId);
+			result = ClusterManager.getInstance().getJobResult(jobId);
 			if (result == null) {
 				try {
 					Thread.sleep(3000);
@@ -377,10 +408,13 @@ public class Commands {
 			else if (result.equals("Invalid Job ID")) {
 				return false;
 			}
-
-			System.out.println(result);
-			return true;
+			else {
+				System.out.println(result);
+				return true;
+			}
+			
 		}
+
 	}
 
 	/**

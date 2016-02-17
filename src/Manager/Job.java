@@ -7,7 +7,7 @@ public class Job {
 	private String jobId;
 	private StringBuilder resultSet;
 	private int numberNodes;
-	private Set<Integer> nodesFinished;
+	private int nodesFinished;
 	private Set<Integer> failureNodes;
 	
 	public Job(String jobId, String resultSet, int numNodes) {
@@ -15,7 +15,7 @@ public class Job {
 		this.resultSet = new StringBuilder();
 		this.resultSet.append(resultSet);
 		this.numberNodes = numNodes;
-		this.nodesFinished = new HashSet<Integer>();
+		this.nodesFinished = 0;
 		this.failureNodes = new HashSet<Integer>();
 	}
 	
@@ -23,7 +23,7 @@ public class Job {
 		this.jobId = jobId;
 		this.resultSet = new StringBuilder();
 		this.numberNodes = numNodes;
-		this.nodesFinished = new HashSet<Integer>();
+		this.nodesFinished = 0;
 		this.failureNodes = new HashSet<Integer>();
 	}
 	
@@ -32,21 +32,18 @@ public class Job {
 	}
 	
 	public void addToResultSet(String result, int nodeNum) {
-		if (this.nodesFinished.contains(nodeNum)) {
-			return;
-		}
-		if (result != null) {
+		if (result != null && !result.isEmpty()) {
 			this.resultSet.append(result);
 		}
-		this.nodesFinished.add(nodeNum);
+		this.nodesFinished++;
 	}
 	
 	public int numberNodesFinished() {
-		return this.nodesFinished.size();
+		return this.nodesFinished;
 	}
 	
 	public boolean jobFinished() {
-		return this.nodesFinished.size() == numberNodes;
+		return this.nodesFinished == numberNodes;
 	}
 	
 	public String getJobId() {
@@ -54,10 +51,7 @@ public class Job {
 	}
 	
 	public void addFailureNode(int nodeNum) {
-		if (this.nodesFinished.contains(nodeNum)) {
-			return;
-		}
-		this.nodesFinished.add(nodeNum);
+		this.nodesFinished++;
 		this.failureNodes.add(nodeNum);
 	}
 }

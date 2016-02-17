@@ -48,8 +48,8 @@ public class MasterToNodeConnectionThread implements Runnable {
 				responseBody += r + "\n";
 			}
 			
-			System.out.println("Response Headers: " + responseHeaders);
-			System.out.println("Response Body: " + responseBody);
+			//System.out.println("Response Headers: " + responseHeaders);
+			//System.out.println("Response Body: " + responseBody);
 			
 			br.close();
 
@@ -80,6 +80,7 @@ public class MasterToNodeConnectionThread implements Runnable {
 				Message m = queue.take();
 				resetUpdate();
 				String result = sendQuery(m.getCommand(), m.getType(), m.getIp(), m.getPort());
+				result = result.trim();
 				ClusterManager managerInstance = ClusterManager.getInstance();
 				managerInstance.recordNodeResponse(m.getJobId(), result, m.getNodeNum(), this.updateSuccessful);
 			}

@@ -10,51 +10,52 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class ClusterManagerDaemonThread extends Thread {
-	
+
 	private ServerSocket serverSocket;
 	private int port;
 	public BlockingQueue<Socket> queue;
 	private Map<String, String> nodeDBMap;
 	private Map<Integer, String> nodeMap;
-	
+
 	public ClusterManagerDaemonThread(int port, BlockingQueue<Socket> queue, Map<String, String> nodeDBMap,
 			Map<Integer, String> nodeMap){
 		this.port = port;
-		this.queue = new LinkedBlockingQueue<Socket>();
+		this.queue = queue;
 		this.nodeDBMap = nodeDBMap;
 		this.nodeMap = nodeMap;
 	}
-	
+
 	public void run() {
-		try {
-			
-			//send nodes information about nodes
-			sendNodeUpdate();
-			  
-			serverSocket = new ServerSocket(port);
-			Socket socket = null;
-			while(true){
-				socket = serverSocket.accept();
-				queue.put(socket);
+		//send nodes information about nodes
+		sendNodeUpdate();
+		while(true){
+			try {
+				Thread.sleep(1000);
+				serverSocket = new ServerSocket(8085);
+				Socket socket = null;
+				while(true){
+					socket = serverSocket.accept();
+					queue.put(socket);
+				}
+			} 
+			catch(Exception e){
+				e.printStackTrace();
 			}
-		} 
-		catch(Exception e){
-			
 		}
 	}
-	
+
 	public void sendNodeUpdate(){
 		List<Thread> threads = new ArrayList<Thread>();
-		
+
 		for (int i = 0; i < nodeMap.size(); i++) {
 			threads.add(new ClusterSendInitConfigThread(nodeMap, nodeDBMap, i));
 		}
-		
+
 		while (! threads.isEmpty()) {
 			Thread t = threads.remove(0);
 			t.start();
 		}
 	}
-	
+
 
 }

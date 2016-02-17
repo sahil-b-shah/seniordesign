@@ -98,7 +98,7 @@ public class NodeManager {
 		
 		daemonThread = new NodeDaemonThread(socket, queue);
 		threadPool = new ArrayList<NodeToNodeConnectionThread>();
-		statusThread = new NodeSendStatusThread(masterIP, masterPort);
+		statusThread = new NodeSendStatusThread(masterIP, masterPort, curNodePort);
 		
 		for (int i = 0; i < numThreads; i++) {
 			NodeToNodeConnectionThread t = new NodeToNodeConnectionThread(queue,

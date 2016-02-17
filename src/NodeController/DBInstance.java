@@ -52,7 +52,9 @@ public class DBInstance {
 			}
 		}
 		
+		System.out.println("Result:"+res);
 		statement.close();
+		if(res.isEmpty()) return "";
 		return res.substring(0, res.length() - 1);
 	}
 }

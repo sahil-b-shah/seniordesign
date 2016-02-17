@@ -56,7 +56,6 @@ public class ClusterManager {
 		jobs = new HashMap<String, Job>();
 		ip = json.get("ip").toString();
 		port = Integer.parseInt(json.get("port").toString());
-		System.out.print("Here");
 		clusterSocket = new ServerSocket(port);
 
 		JSONArray ndes = new JSONArray(json.get("nodes").toString());
@@ -80,8 +79,12 @@ public class ClusterManager {
 		for (int i = 0; i < ndes.length(); i++) {
 			ArrayList<String> reps = new ArrayList<String>(numReplicas);
 			for(int j = 0; j < numReplicas; j++){
-				reps.add(nodeMap.get((i + j + 1) % numReplicas));
+				reps.add(nodeMap.get((i + j + 1) % ndes.length()));
 			}
+			JSONObject nde = new JSONObject(ndes.get(i).toString());
+			String ip = nde.get("ip").toString();
+			int port = Integer.parseInt(nde.get("port").toString());
+			System.out.println("Putting "+ip+":"+port + " in replicamap:" + reps);
 			nodeReplicas.put(ip+":"+port, reps);
 		}
 
@@ -101,18 +104,15 @@ public class ClusterManager {
 	}
 
 	public synchronized static ClusterManager getInstance() throws IOException, JSONException{
-			System.out.println("Get instance");
-			if(managerInstance == null){
-				System.out.println("Creating ClusterManager");
-				//TODO: set password, server, etc
-				File f = new File(clusterConfigFileLocation);
-				InputStream is = new FileInputStream(f);
-				String contents = readContentsOfFile(is);
-				JSONObject json = new JSONObject(contents);
+		if(managerInstance == null){
+			//TODO: set password, server, etc
+			File f = new File(clusterConfigFileLocation);
+			InputStream is = new FileInputStream(f);
+			String contents = readContentsOfFile(is);
+			JSONObject json = new JSONObject(contents);
 
-				managerInstance = new ClusterManager(json);
-				System.out.println(managerInstance.ip);
-			}
+			managerInstance = new ClusterManager(json);
+		}
 
 		return managerInstance;
 	}
@@ -154,23 +154,28 @@ public class ClusterManager {
 	 * @param type
 	 * @return
 	 */
-	public String sendMessages(Map<String, Integer> messages, String type) {
+	public String sendMessages(Map<String, List<Integer>> messages, String type, int count) {
+		//System.out.println("Messages:"+ messages.toString());
 		String jobId = getNextJobId();
-		Job j = new Job(jobId, messages.size());
+		//System.out.println("Message size:" +messages.size());
+		Job j = new Job(jobId, count);
 		jobs.put(jobId, j);
 
-		for(Entry<String, Integer> message: messages.entrySet()){
-			int i = message.getValue();
-			if(i==-1)
-				continue;
-			String[] nodeAddr = nodeMap.get(i).split(":"); 
-			Message m = new Message(message.getKey(), type, nodeAddr[0], Integer.parseInt(nodeAddr[1]), i, jobId);
-			try {
-				messageQueue.put(m);
-			} 
-			catch (InterruptedException e1) {
-				e1.printStackTrace();
-				return null;
+		for(Entry<String, List<Integer>> message: messages.entrySet()){
+			//System.out.println(message.getValue() +" node sends message of "+message.getKey());
+			List<Integer> nodes = message.getValue();
+			for(int i: nodes){
+				if(i==-1)
+					continue;
+				String[] nodeAddr = nodeMap.get(i).split(":"); 
+				Message m = new Message(message.getKey(), type, nodeAddr[0], Integer.parseInt(nodeAddr[1]), i, jobId);
+				try {
+					messageQueue.put(m);
+				} 
+				catch (InterruptedException e1) {
+					e1.printStackTrace();
+					return null;
+				}
 			}
 		}
 
@@ -221,6 +226,7 @@ public class ClusterManager {
 		}
 
 		if(j.jobFinished()) {
+			System.out.println("Finish point");
 			jobs.remove(jobId);
 			return j.getResultSet();
 		}

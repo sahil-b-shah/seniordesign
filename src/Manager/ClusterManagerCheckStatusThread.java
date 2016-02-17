@@ -19,7 +19,7 @@ public class ClusterManagerCheckStatusThread extends Thread{
 		while(true){
 			try {
 				detectError();
-				Thread.sleep(30000);
+				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -30,7 +30,7 @@ public class ClusterManagerCheckStatusThread extends Thread{
 		boolean errors = false;
 		for(String address: statusMap.keySet()){
 			long time = statusMap.get(address);
-			if(System.currentTimeMillis() < (time + 30000)){
+			if(System.currentTimeMillis() > (time + 10000)){
 				errors = true;
 				try {
 					ClusterManager.getInstance().setNodeStatus(address, NodeStatus.FAILED);

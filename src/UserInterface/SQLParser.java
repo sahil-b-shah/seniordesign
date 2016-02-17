@@ -77,7 +77,7 @@ public class SQLParser {
 		}
 		else{
 			System.out.println(cmd + " is not a recognized command");
-//			return Commands.select(cmd); // uncomment if you want to hardcode an action if regex dont match correctly
+			//return Commands.insert(cmd); // uncomment if you want to hardcode an action if regex dont match correctly
 			return false;
 		}
 	}
